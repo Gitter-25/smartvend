@@ -2,9 +2,10 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
-import { DemoProvider } from './data/DemoContext';
+import { AuthProvider } from './data/AuthContext';
+import { DataProvider } from './data/AppData';
 import './styles.css';
 
 createRoot(document.getElementById('root')).render(
-  <React.StrictMode><BrowserRouter><DemoProvider><App /></DemoProvider></BrowserRouter></React.StrictMode>,
+  <React.StrictMode><BrowserRouter><AuthProvider><DataProvider><App /></DataProvider></AuthProvider></BrowserRouter></React.StrictMode>,
 );

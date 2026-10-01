@@ -1,4 +1,4 @@
-# SmartVend — Phase 2
+# SmartVend — Phase 3
 
 Small subject project: one product, one machine, admin-created Maya top-ups, NFC wallet purchases, and encryption. Software is completed before hardware integration.
 
@@ -20,9 +20,9 @@ npm run preview
 ## Routes
 `/login`, `/dashboard`, `/students`, `/product`, `/transactions`.
 
-Phase 2 includes student registration with duplicate checks, card enable/disable, shared wallet previews, a disabled Maya top-up form, product price/stock editing, dashboard summaries, transaction filters and details. Data is fictional and kept only in memory; navigation preserves edits, refreshing resets them. Use test card identifiers only.
+Phase 3 adds Supabase email/password login, protected admin routes, database-backed student/wallet records, product editing, card status updates for enrolled cards, and transaction reads. Follow [docs/SETUP.md](docs/SETUP.md) to run the migration, create your admin, and configure `.env.local`. Without configuration, the app displays setup instructions.
 
-Login is a disabled preview: routes are not authenticated yet. There is no database, payment integration, encryption implementation, or hardware connection yet.
+For a sample-data preview, explicitly set `VITE_DEMO_MODE=true`. It never connects to Supabase and resets on refresh. Live Maya payments and encrypted card enrollment are still pending. Wallet balances and transaction writes are blocked from the browser.
 
 Every named function has a short explanatory comment. Arrow callbacks are small inline rendering expressions.
 
