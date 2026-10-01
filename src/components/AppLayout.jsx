@@ -10,7 +10,7 @@ export default function AppLayout() {
         <nav>{pages.map((page) => <NavLink key={page} to={`/${page.toLowerCase()}`}>{page}</NavLink>)}</nav>
         <NavLink to="/login">Login preview</NavLink>
       </aside>
-      <main><header>Single machine · Single product <span className="badge">Phase 1 · Setup</span></header><Outlet /></main>
+      <main><header>Single machine · Single product <span className="badge">Phase 2 · Demo UI</span></header><div className="notice">Sample data only · Changes reset on refresh · Use test card identifiers</div><Outlet /></main>
     </div>
   );
 }

@@ -1,14 +1,20 @@
+import { Link } from 'react-router-dom';
+import { sampleTransactions, useDemo } from '../data/DemoContext';
+import PageHeading from '../components/PageHeading';
+import TransactionTable from '../components/TransactionTable';
 import StatusBadge from '../components/StatusBadge';
+import { pesos } from '../lib/format';
 
-// Show the project status before live data is connected.
+// Summarize the shared sample data and link to the main admin tasks.
 export default function Dashboard() {
+  const { students, product } = useDemo();
   return <>
-    <p className="eyebrow">OVERVIEW</p><h2>Dashboard</h2><p>Your SmartVend software starts here.</p>
+    <PageHeading title="Dashboard" description="Manage your single machine from one place." />
     <div className="grid">
-      <section className="card"><h3>Machine</h3><StatusBadge>Not connected</StatusBadge><p>ESP32-S3 integration is planned for Phase 7.</p></section>
-      <section className="card"><h3>Product stock</h3><strong>—</strong><p>Connect product data in Phase 3.</p></section>
-      <section className="card"><h3>Payments</h3><StatusBadge>Not connected</StatusBadge><p>Maya sandbox integration is planned for Phase 5.</p></section>
+      <section className="card"><h3>Available stock</h3><strong>{product.stock}</strong><p>{product.name} · {pesos(product.price)}</p><Link to="/product">Manage product →</Link></section>
+      <section className="card"><h3>Registered students</h3><strong>{students.length}</strong><p>{students.filter((student) => student.active).length} active cards</p><Link to="/students">Manage students →</Link></section>
+      <section className="card"><h3>Machine</h3><StatusBadge>Not connected</StatusBadge><p>ESP32-S3 will be connected after the software is ready.</p></section>
     </div>
-    <section className="card"><h3>Recent transactions</h3><p>No transactions yet. This is the Phase 1 setup preview.</p></section>
+    <section className="card"><h3>Recent activity</h3><TransactionTable rows={sampleTransactions} /></section>
   </>;
 }

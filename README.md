@@ -1,4 +1,4 @@
-# SmartVend — Phase 1
+# SmartVend — Phase 2
 
 Small subject project: one product, one machine, admin-created Maya top-ups, NFC wallet purchases, and encryption. Software is completed before hardware integration.
 
@@ -20,7 +20,9 @@ npm run preview
 ## Routes
 `/login`, `/dashboard`, `/students`, `/product`, `/transactions`.
 
-Phase 1 contains navigation, reusable components, and placeholder pages. Login is a disabled preview: routes are not authenticated yet. There is no database, payment integration, encryption implementation, or hardware connection yet.
+Phase 2 includes student registration with duplicate checks, card enable/disable, shared wallet previews, a disabled Maya top-up form, product price/stock editing, dashboard summaries, transaction filters and details. Data is fictional and kept only in memory; navigation preserves edits, refreshing resets them. Use test card identifiers only.
+
+Login is a disabled preview: routes are not authenticated yet. There is no database, payment integration, encryption implementation, or hardware connection yet.
 
 Every named function has a short explanatory comment. Arrow callbacks are small inline rendering expressions.
 
