@@ -5,6 +5,7 @@ import { pesos } from '../lib/format';
 import PageHeading from '../components/PageHeading';
 import Button from '../components/Button';
 import Input from '../components/Input';
+import CardEnrollment from '../components/CardEnrollment';
 import StatusBadge from '../components/StatusBadge';
 
 // Register students, toggle cards, and preview the Maya top-up form.
@@ -44,7 +45,7 @@ export default function Students() {
   return <>
     <PageHeading title="Students" description="Register cards, view wallets, and prepare student top-ups." />
     <div className="two-columns">
-      <section className="card"><h3>Register student</h3><p>{demoMode ? 'Use fictional details and test card identifiers in this preview.' : 'Register the student now. Encrypted card enrollment follows in Phase 4.'}</p>
+      <section className="card"><h3>Register student</h3><p>{demoMode ? 'Use fictional details and test card identifiers in this preview.' : 'Register the student now. Use the enrollment form below to link an encrypted card.'}</p>
         <form onSubmit={registerStudent}>
           <Input label="Student name" id="name" name="name" required maxLength={80} />
           <Input label="Student number" id="number" name="number" required maxLength={40} />
@@ -61,6 +62,7 @@ export default function Students() {
         <Button disabled>Create Maya QR</Button><p>Maya payments will be connected in Phase 5.</p>
       </section>
     </div>
+    <CardEnrollment />
     <section className="card"><h3>Registered students</h3><div className="table-wrap"><table>
       <thead><tr><th>Name</th><th>Student number</th><th>Balance</th><th>Card status</th><th>Action</th></tr></thead>
       <tbody>{students.map((item) => <tr key={item.id}><td>{item.name}</td><td>{item.number}</td><td>{pesos(item.balance)}</td><td><StatusBadge>{!demoMode && !item.cardId ? 'Not enrolled' : item.active ? 'Active' : 'Disabled'}</StatusBadge></td><td><Button className="secondary" disabled={busy || (!demoMode && !item.cardId)} onClick={() => toggleCard(item)}>{item.active ? 'Disable' : 'Enable'} card for {item.name}</Button></td></tr>)}</tbody>

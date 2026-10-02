@@ -66,7 +66,21 @@ export function DataProvider({ children }) {
     if (error) throw error;
     await loadData();
   }
-  return <DataContext.Provider value={{ students, product, transactions, loading, error, loadData, addStudent, toggleCard, saveProduct }}>{children}</DataContext.Provider>;
+  // Send card identifiers only to the authenticated backend encryption function.
+  async function manageCard(input) {
+    if (demoMode) throw new Error('Connect Supabase to use encrypted enrollment.');
+    const { data, error } = await supabase.functions.invoke('card-management', { body: input });
+    if (error) {
+      let message = error.message;
+      if (error.context?.json) {
+        try { message = (await error.context.json()).error || message; } catch { /* Keep the network error if no JSON was returned. */ }
+      }
+      throw new Error(message);
+    }
+    if (input.action === 'enroll') await loadData();
+    return data;
+  }
+  return <DataContext.Provider value={{ students, product, transactions, loading, error, loadData, addStudent, toggleCard, saveProduct, manageCard }}>{children}</DataContext.Provider>;
 }
 
 // Read shared admin data from a page.
