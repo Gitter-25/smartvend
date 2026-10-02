@@ -43,3 +43,12 @@ Live transactions start empty. Maya payments, wallet credits, encrypted card enr
 
 ## Sample-data mode
 For the Phase 2 preview, set `VITE_DEMO_MODE=true` and restart Vite. This mode does not connect to Supabase and resets edits on refresh. Do not deploy demo mode as your admin system.
+
+## Troubleshooting
+- A disabled Sign in button with a setup message means `.env.local` is missing its URL or publishable key. This file belongs beside `package.json`, not in `src`. `.env.example` is only a template. Stop Vite with Ctrl+C and restart after saving settings.
+- In PowerShell, create a new local configuration with `Copy-Item .env.example .env.local`. Do this only when `.env.local` does not already exist.
+- Invalid login credentials: verify the account in this same Supabase project's Authentication → Users. A fictional email can be used for testing if you confirm that user in the dashboard.
+- Not a SmartVend admin: add that Auth user's UUID to `public.admins` using the Admin Access query above.
+- Never put your actual settings in `.env.example` or commit `.env.local`. Keep `.env.example` blank as provided.
+
+Phase 3 checkpoint: sign-in, student persistence, product persistence, and sign-out are working before moving to encryption.

@@ -37,8 +37,10 @@ export function AuthProvider({ children }) {
 
   // Sign out through Supabase and report failures to the interface.
   async function signOut() {
-    const { error } = await supabase.auth.signOut();
-    if (error) setError(error.message);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) setError(error.message);
+    } catch { setError('Could not sign out. Check your connection.'); }
   }
   return <AuthContext.Provider value={{ session, ready, admin, error, demoMode, signOut }}>{children}</AuthContext.Provider>;
 }

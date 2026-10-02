@@ -18,7 +18,7 @@ export default function Product() {
     const name = data.get('name').trim();
     const price = Number(data.get('price'));
     const stock = Number(data.get('stock'));
-    if (!name || !Number.isFinite(price) || price <= 0 || !Number.isSafeInteger(stock) || stock < 0) return setMessage('Enter a name, a positive price, and a whole stock count.');
+    if (!name || !Number.isFinite(price) || price < 0.01 || price > 9999999999.99 || !Number.isSafeInteger(stock) || stock < 0 || stock > 2147483647) return setMessage('Enter a name, a positive price, and a whole stock count.');
     setBusy(true);
     try {
       await persistProduct({ name, price: Math.round(price * 100) / 100, stock });
