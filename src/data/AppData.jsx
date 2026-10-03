@@ -3,13 +3,13 @@ import { supabase, demoMode } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 import { sampleStudents, sampleTransactions } from './samples';
 const DataContext = createContext(null);
-const initialProduct = { name: 'Bottled water', price: 25, stock: 12 };
+const initialProducts = [{ id: 1, name: 'Bottled water', price: 25, stock: 12 }, { id: 2, name: 'Biscuits', price: 15, stock: 0 }];
 
 // Load admin data and provide small functions for allowed database changes.
 export function DataProvider({ children }) {
   const { session, admin } = useAuth();
   const [students, setStudents] = useState(demoMode ? sampleStudents : []);
-  const [product, setProduct] = useState(demoMode ? initialProduct : null);
+  const [products, setProducts] = useState(demoMode ? initialProducts : []);
   const [transactions, setTransactions] = useState(demoMode ? sampleTransactions : []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -22,14 +22,15 @@ export function DataProvider({ children }) {
     try {
       const results = await Promise.all([
         supabase.from('students').select('id,name,number,wallets(balance),cards(id,active)').order('created_at'),
-        supabase.from('products').select('name,price,stock').eq('id', 1).single(),
+        supabase.from('products').select('id,name,price,stock').order('id'),
         supabase.from('transactions').select('id,type,amount,status,created_at,note,students(name)').order('created_at', { ascending: false }).limit(100),
       ]);
       if (current !== requestId.current) return;
       const failure = results.find((result) => result.error);
       if (failure) throw failure.error;
       setStudents(results[0].data.map((row) => ({ ...row, balance: Number(row.wallets?.balance ?? 0), cardId: row.cards?.id, active: row.cards?.active ?? false })));
-      setProduct({ ...results[1].data, price: Number(results[1].data.price) });
+      if (results[1].data.length !== 2) throw new Error('Run the two-slot migration (002_two_slots.sql), then click Retry.');
+      setProducts(results[1].data.map((row) => ({ ...row, price: Number(row.price) })));
       setTransactions(results[2].data.map((row) => ({ ...row, student: row.students?.name ?? 'Unknown', amount: Number(row.amount), date: row.created_at })));
     } catch (failure) { if (current === requestId.current) setError(failure.message || 'Could not load data.'); }
     finally { if (current === requestId.current) setLoading(false); }
@@ -39,7 +40,7 @@ export function DataProvider({ children }) {
   useEffect(() => {
     if (demoMode) return;
     if (session && admin) loadData();
-    else { ++requestId.current; setStudents([]); setProduct(null); setTransactions([]); setLoading(false); setError(''); }
+    else { ++requestId.current; setStudents([]); setProducts([]); setTransactions([]); setLoading(false); setError(''); }
     return () => { ++requestId.current; };
   }, [session?.user.id, admin]);
 
@@ -59,10 +60,10 @@ export function DataProvider({ children }) {
     await loadData();
   }
 
-  // Save the single product with database constraints as a second validation layer.
-  async function saveProduct(next) {
-    if (demoMode) { setProduct(next); return; }
-    const { error } = await supabase.from('products').update(next).eq('id', 1).select('id').single();
+  // Save one fixed slot without changing its number.
+  async function saveProduct(id, next) {
+    if (demoMode) { setProducts((rows) => rows.map((row) => row.id === id ? { ...row, ...next } : row)); return; }
+    const { error } = await supabase.from('products').update({ name: next.name, price: next.price, stock: next.stock }).eq('id', id).select('id').single();
     if (error) throw error;
     await loadData();
   }
@@ -80,7 +81,7 @@ export function DataProvider({ children }) {
     if (input.action === 'enroll') await loadData();
     return data;
   }
-  return <DataContext.Provider value={{ students, product, transactions, loading, error, loadData, addStudent, toggleCard, saveProduct, manageCard }}>{children}</DataContext.Provider>;
+  return <DataContext.Provider value={{ students, products, transactions, loading, error, loadData, addStudent, toggleCard, saveProduct, manageCard }}>{children}</DataContext.Provider>;
 }
 
 // Read shared admin data from a page.

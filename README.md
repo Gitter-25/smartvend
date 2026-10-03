@@ -1,6 +1,6 @@
 # SmartVend
 
-A small subject project: one product, one machine, admin-created Maya wallet top-ups, NFC wallet purchases, and encryption. Finish the software before connecting ESP32-S3 hardware.
+A small subject project: two fixed product slots, one machine, admin-created Maya wallet top-ups, NFC wallet purchases, and encryption. Finish the software before connecting ESP32-S3 hardware.
 
 ## Start
 Use Node.js 22.12+ (Node 24 recommended).
@@ -15,7 +15,7 @@ Open the local URL printed by Vite. To connect your project, follow [Phase 3 set
 ## Current features
 - Admin email/password login and protected routes.
 - Student registration with a zero-balance wallet.
-- One product's price and stock settings.
+- Separate product, price, and stock settings for Slot 1 and Slot 2.
 - Transaction history and filtering.
 - Backend encrypted card enrollment, verification, and enable/disable.
 
@@ -35,7 +35,7 @@ GitHub Actions runs these checks on pushes and pull requests. Named functions ha
 1. React project setup — done
 2. Admin screens — done
 3. Supabase authentication and data — implemented, confirmed working by user
-4. Backend card encryption — implemented; deploy to your Supabase project
+4. Backend card encryption — implemented, confirmed working by user; two-slot update added
 5. Maya sandbox top-ups — next
 6. Simulated wallet purchases — pending
 7. ESP32-S3 integration — pending
@@ -45,3 +45,6 @@ GitHub Actions runs these checks on pushes and pull requests. Named functions ha
 `/login`, `/dashboard`, `/students`, `/product`, `/transactions`.
 
 For production hosting, configure app routes to serve `index.html`.
+
+## Two-slot update
+After pulling this update, run [002_two_slots.sql](supabase/migrations/002_two_slots.sql) in Supabase SQL Editor. Do not rerun 001_initial.sql. Slot 1 keeps its current settings; Slot 2 starts with zero stock. Both slots share one ESP32-S3 and one NFC reader. No Edge Function redeployment or key changes are needed.

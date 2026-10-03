@@ -11,8 +11,8 @@ export default function ProtectedRoute({ children }) {
   if (!auth.ready) return <p>Checking session…</p>;
   if (!auth.session) return <Navigate to="/login" replace />;
   if (!auth.admin) return <section className="card"><p role="alert">{auth.error || 'Checking admin access…'}</p><Button onClick={auth.signOut}>Sign out</Button></section>;
-  if (data.loading && !data.product) return <p>Loading admin data…</p>;
+  if (data.loading && !data.products.length) return <p>Loading admin data…</p>;
   if (data.error) return <section className="card"><p role="alert">{data.error}</p><Button onClick={data.loadData}>Retry</Button></section>;
-  if (!data.product) return <p>Loading product…</p>;
+  if (!data.products.length) return <p>Loading slots…</p>;
   return children;
 }
