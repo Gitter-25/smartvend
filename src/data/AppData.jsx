@@ -67,6 +67,18 @@ export function DataProvider({ children }) {
     if (error) throw error;
     await loadData();
   }
+  // Use the backend transaction function; never write wallet balances directly.
+  async function topupWallet(input) {
+    if (demoMode) {
+      const student = students.find((row) => row.id === input.student);
+      setStudents((rows) => rows.map((row) => row.id === input.student ? { ...row, balance: Math.round((row.balance + input.amount) * 100) / 100 } : row));
+      setTransactions((rows) => [{ id: input.request_id, student: student.name, type: 'Top-up', amount: input.amount, status: 'Completed', date: new Date().toISOString(), note: 'Demo admin credit only' }, ...rows]);
+      return;
+    }
+    const { error } = await supabase.rpc('admin_topup', input);
+    if (error) throw error;
+    await loadData();
+  }
   // Send card identifiers only to the authenticated backend encryption function.
   async function manageCard(input) {
     if (demoMode) throw new Error('Connect Supabase to use encrypted enrollment.');
@@ -81,7 +93,7 @@ export function DataProvider({ children }) {
     if (input.action === 'enroll') await loadData();
     return data;
   }
-  return <DataContext.Provider value={{ students, products, transactions, loading, error, loadData, addStudent, toggleCard, saveProduct, manageCard }}>{children}</DataContext.Provider>;
+  return <DataContext.Provider value={{ students, products, transactions, loading, error, loadData, addStudent, toggleCard, saveProduct, manageCard, topupWallet }}>{children}</DataContext.Provider>;
 }
 
 // Read shared admin data from a page.

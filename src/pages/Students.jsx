@@ -6,15 +6,14 @@ import PageHeading from '../components/PageHeading';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import CardEnrollment from '../components/CardEnrollment';
+import WalletTopup from '../components/WalletTopup';
 import StatusBadge from '../components/StatusBadge';
 
-// Register students, toggle cards, and preview the Maya top-up form.
+// Register students, manage card status, and show the wallet credit form.
 export default function Students() {
   const { students, addStudent, toggleCard: persistCard } = useData();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
-  const [selected, setSelected] = useState('');
-  const student = students.find((item) => item.id === (selected || students[0]?.id));
 
   // Reject blank or duplicate identifiers before adding a student.
   async function registerStudent(event) {
@@ -53,14 +52,7 @@ export default function Students() {
           <Button type="submit" disabled={busy}>{busy ? 'Saving…' : 'Register student'}</Button>
         </form><p role="status">{message}</p>
       </section>
-      <section className="card"><h3>Maya top-up</h3>
-        <label htmlFor="wallet">Student<select id="wallet" value={selected || students[0]?.id || ''} onChange={(event) => setSelected(event.target.value)}>
-          {students.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.number}</option>)}
-        </select></label>
-        <p>Wallet balance: <b>{pesos(student?.balance ?? 0)}</b></p>
-        <Input label="Top-up amount (₱)" id="amount" type="number" min="1" step="0.01" placeholder="100.00" />
-        <Button disabled>Create Maya QR</Button><p>Maya payments will be connected in Phase 5.</p>
-      </section>
+      <WalletTopup />
     </div>
     <CardEnrollment />
     <section className="card"><h3>Registered students</h3><div className="table-wrap"><table>
