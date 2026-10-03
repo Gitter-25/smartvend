@@ -28,7 +28,8 @@ export function createCardHandler({ db, encryptionKey, lookupKey }) {
       if (text.length > 2048) return reply(413, { error: 'Request is too large.' });
       let input;
       try { input = JSON.parse(text); } catch { return reply(400, { error: 'Invalid JSON.' }); }
-      if (!input || !['enroll', 'verify'].includes(input.action) || typeof input.studentId !== 'string' || !/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(input.studentId)) return reply(400, { error: 'Select a student and an enrollment or verification action.' });
+      if (!input || !['enroll', 'verify', 'purchase'].includes(input.action) || typeof input.studentId !== 'string' || !/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(input.studentId)) return reply(400, { error: 'Select a student and an enrollment or verification action.' });
+      if (input.action === 'purchase' && (![1, 2].includes(input.slot) || typeof input.requestId !== 'string' || !/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(input.requestId))) return reply(400, { error: 'Select a slot and provide a purchase request ID.' });
       let uid;
       try { uid = normalizeCard(input.uid); } catch (error) { return reply(400, { error: error.message }); }
       if (!encryptionKey || !lookupKey || encryptionKey.toLowerCase() === lookupKey.toLowerCase()) throw new Error('Missing or reused encryption keys.');
@@ -46,6 +47,14 @@ export function createCardHandler({ db, encryptionKey, lookupKey }) {
       if (!result.data || result.data.student_id !== input.studentId) return reply(404, { error: 'This card does not match the selected student.' });
       const plaintext = await decryptCard(result.data.identifier_ciphertext, result.data.student_id, encryptionKey);
       if (plaintext !== uid) throw new Error('Card integrity check failed.');
+      if (input.action === 'purchase') {
+        const purchase = await db.rpc('simulate_purchase', { card: result.data.id, slot: input.slot, request_id: input.requestId, actor: data.user.id });
+        if (purchase.error) {
+          const expected = ['Card is disabled', 'Slot is out of stock', 'Insufficient wallet balance', 'Request ID already used', 'Slot not found', 'Student wallet not found'];
+          return reply(409, { error: expected.includes(purchase.error.message) ? purchase.error.message : 'Purchase failed. Check migration 004 and backend configuration.' });
+        }
+        return reply(200, purchase.data);
+      }
       return reply(200, { matches: true, active: result.data.active });
     } catch {
       return reply(500, { error: 'Card service failed. Check backend secrets and function configuration.' });

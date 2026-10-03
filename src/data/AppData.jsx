@@ -23,7 +23,7 @@ export function DataProvider({ children }) {
       const results = await Promise.all([
         supabase.from('students').select('id,name,number,wallets(balance),cards(id,active)').order('created_at'),
         supabase.from('products').select('id,name,price,stock').order('id'),
-        supabase.from('transactions').select('id,type,amount,status,created_at,note,students(name)').order('created_at', { ascending: false }).limit(100),
+        supabase.from('transactions').select('id,type,amount,status,created_at,note,slot_id,product_name,students(name)').order('created_at', { ascending: false }).limit(100),
       ]);
       if (current !== requestId.current) return;
       const failure = results.find((result) => result.error);
@@ -31,7 +31,7 @@ export function DataProvider({ children }) {
       setStudents(results[0].data.map((row) => ({ ...row, balance: Number(row.wallets?.balance ?? 0), cardId: row.cards?.id, active: row.cards?.active ?? false })));
       if (results[1].data.length !== 2) throw new Error('Run the two-slot migration (002_two_slots.sql), then click Retry.');
       setProducts(results[1].data.map((row) => ({ ...row, price: Number(row.price) })));
-      setTransactions(results[2].data.map((row) => ({ ...row, student: row.students?.name ?? 'Unknown', amount: Number(row.amount), date: row.created_at })));
+      setTransactions(results[2].data.map((row) => ({ ...row, student: row.students?.name ?? 'Unknown', amount: Number(row.amount), date: row.created_at, note: row.slot_id ? `Slot ${row.slot_id} · ${row.product_name} · ${row.note}` : row.note })));
     } catch (failure) { if (current === requestId.current) setError(failure.message || 'Could not load data.'); }
     finally { if (current === requestId.current) setLoading(false); }
   }
@@ -90,7 +90,7 @@ export function DataProvider({ children }) {
       }
       throw new Error(message);
     }
-    if (input.action === 'enroll') await loadData();
+    if (['enroll', 'purchase'].includes(input.action)) await loadData();
     return data;
   }
   return <DataContext.Provider value={{ students, products, transactions, loading, error, loadData, addStudent, toggleCard, saveProduct, manageCard, topupWallet }}>{children}</DataContext.Provider>;

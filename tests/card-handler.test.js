@@ -7,7 +7,14 @@ const uid = '04:A1:B2:C3:D4:E5:F6';
 // Simulate only the database boundary so real handler and crypto code are exercised.
 function fixture({ authorized = true, member = true } = {}) {
   const records = [];
+  const purchases = [];
   const db = {
+    // Capture purchase calls after real authentication and decryption checks.
+    async rpc(name, input) {
+      purchases.push({ name, input });
+      if (!records[0]?.active) return { error: { message: 'Card is disabled' } };
+      return { data: { transactionId: input.request_id, amount: 25, status: 'Completed' } };
+    },
     auth: { getUser: async () => ({ data: { user: authorized ? { id: studentId } : null }, error: null }) },
     // Support the small query chain used by the backend handler.
     from(table) {
@@ -31,7 +38,7 @@ function fixture({ authorized = true, member = true } = {}) {
     },
   };
   const handle = createCardHandler({ db, encryptionKey: '11'.repeat(32), lookupKey: '22'.repeat(32) });
-  return { handle, records };
+  return { handle, records, purchases };
 }
 
 // Build a request with a dummy token; the injected Auth boundary decides validity.
@@ -74,4 +81,23 @@ test('rejects malformed input and corrupted ciphertext', async () => {
   const result = await handle(request('verify'));
   assert.equal(result.status, 500);
   assert(!JSON.stringify(await result.json()).includes(records[0].identifier_ciphertext));
+});
+
+// Card verification must finish before the backend-only payment function is called.
+test('purchase checks the card and passes only trusted identities to the payment function', async () => {
+  const { handle, records, purchases } = fixture();
+  const input = { slot: 2, requestId: '00000000-0000-0000-0000-000000000009', actor: 'forged', amount: 1 };
+  assert.equal((await handle(request('purchase', 'Bearer test-session', input))).status, 404);
+  assert.equal(purchases.length, 0);
+  await handle(request('enroll'));
+  assert.equal((await handle(request('purchase', 'Bearer test-session', { ...input, slot: 3 }))).status, 400);
+  assert.equal((await handle(request('purchase', 'Bearer test-session', { ...input, uid: '11223344' }))).status, 404);
+  assert.equal(purchases.length, 0);
+  const response = await handle(request('purchase', 'Bearer test-session', input));
+  assert.deepEqual(await response.json(), { transactionId: input.requestId, amount: 25, status: 'Completed' });
+  assert.deepEqual(purchases[0], { name: 'simulate_purchase', input: { card: 'card-1', slot: 2, request_id: input.requestId, actor: studentId } });
+  records[0].active = false;
+  const disabled = await handle(request('purchase', 'Bearer test-session', input));
+  assert.equal(disabled.status, 409);
+  assert.deepEqual(await disabled.json(), { error: 'Card is disabled' });
 });

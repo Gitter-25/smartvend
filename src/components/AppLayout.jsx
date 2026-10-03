@@ -1,7 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../data/AuthContext';
 import Button from './Button';
-const pages = ['Dashboard', 'Students', 'Product', 'Transactions'];
+const pages = ['Dashboard', 'Students', 'Product', 'Purchase', 'Transactions'];
 
 // Display the shared navigation and selected admin page.
 export default function AppLayout() {
