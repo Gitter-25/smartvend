@@ -7,6 +7,7 @@ import Students from './pages/Students';
 import Product from './pages/Product';
 import Transactions from './pages/Transactions';
 import Purchase from './pages/Purchase';
+import Machine from './pages/Machine';
 
 // Connect each URL to its page. Protected routes require an authenticated admin.
 export default function App() {
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/students" element={<Students />} />
         <Route path="/product" element={<Product />} />
+        <Route path="/machine" element={<Machine />} />
         <Route path="/purchase" element={<Purchase />} />
         <Route path="/transactions" element={<Transactions />} />
       </Route>

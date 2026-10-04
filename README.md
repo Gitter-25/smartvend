@@ -39,7 +39,7 @@ GitHub Actions runs these checks on pushes and pull requests. Named functions ha
 4. Backend card encryption — implemented, confirmed working by user; two-slot update added
 5. Manual admin top-ups — implemented; run migration 003
 6. Simulated wallet purchases — implemented; run migration 004 and redeploy card-management
-7. ESP32-S3 integration — pending
+7. Device backend and admin recovery — implemented; apply migrations 005–006 and deploy device-vending. ESP32-S3 firmware and physical integration remain pending
 8. Final testing and presentation — pending
 
 ## Routes
@@ -55,3 +55,8 @@ Follow [admin top-up setup](docs/TOPUPS.md). External Maya payments are omitted 
 
 ## Phase 6
 Follow [simulated purchase setup](docs/PURCHASES.md). This admin-only test uses enrolled encrypted cards and updates wallet credit, slot stock, and receipts atomically. It does not physically dispense items.
+
+## Reliability and device backend update
+Follow [device setup](docs/DEVICE.md) to apply migrations 005–006 and deploy the device endpoint. This update adds version-checked stock edits, saved retry IDs across page reloads, server-paginated transaction filters, and admin reconciliation for uncertain dispensing. Run the [acceptance checklist](docs/ACCEPTANCE.md) before the demonstration.
+
+`npm test` now includes the actual SQL migrations in PGlite alongside crypto and endpoint tests. Physical hardware and live Supabase deployment are not covered by these local checks.

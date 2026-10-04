@@ -1,4 +1,7 @@
-import { useRef, useState } from 'react';
+import PendingRecovery from '../components/PendingRecovery';
+import { pendingStore, cardFingerprint } from '../lib/pending-request';
+import { useAuth } from '../data/AuthContext';
+import { useState } from 'react';
 import { useData } from '../data/AppData';
 import { demoMode } from '../lib/supabase';
 import { pesos } from '../lib/format';
@@ -13,7 +16,8 @@ export default function Purchase() {
   const [slot, setSlot] = useState(1);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
-  const pending = useRef(null);
+  const { session } = useAuth();
+  const store = pendingStore(`${session?.user.id ?? 'demo'}:purchase`);
   const student = students.find((row) => row.id === (studentId || students[0]?.id));
 
   // Send the card and slot; the backend determines the price and checks funds.
@@ -22,14 +26,16 @@ export default function Purchase() {
     if (busy || !student || demoMode) return;
     const form = event.currentTarget;
     const uid = new FormData(form).get('uid').trim();
-    const identity = `${student.id}:${slot}:${uid.replace(/[\s:-]/g, '').toUpperCase()}`;
-    if (pending.current?.identity !== identity) pending.current = { identity, requestId: crypto.randomUUID() };
     setBusy(true); setMessage('');
     try {
-      const result = await manageCard({ action: 'purchase', studentId: student.id, slot, uid, requestId: pending.current.requestId });
-      pending.current = null; form.reset();
+      const identity = `${student.id}:${slot}:${await cardFingerprint(uid)}`;
+      let pending = store.read();
+      if (pending && pending.identity !== identity) throw new Error('Resolve the previous purchase with the same student, slot, and card first.');
+      pending ??= store.save({ identity, requestId: crypto.randomUUID() });
+      const result = await manageCard({ action: 'purchase', studentId: student.id, slot, uid, requestId: pending.requestId });
+      store.clear(); form.reset();
       setMessage(`Simulated purchase completed: ${pesos(result.amount)}. Wallet and stock updated. Reference: ${result.transactionId}`);
-    } catch (error) { setMessage(`${error.message} If the response was interrupted, retry the same entry.`); }
+    } catch (error) { if (error.definitive) store.clear(); setMessage(`${error.message} If the response was interrupted, retry the same entry.`); }
     finally { setBusy(false); }
   }
   return <><PageHeading title="Purchase test" description="Software simulation only. No physical item is dispensed." />
@@ -43,5 +49,5 @@ export default function Purchase() {
       </select></label>
       <Input label="Enrolled card UID" id="purchase-uid" name="uid" required maxLength={80} autoComplete="off" disabled={busy || demoMode} />
       <Button type="submit" disabled={busy || demoMode || !student}>{busy ? 'Processing…' : 'Simulate purchase'}</Button>
-    </form><p role="status">{message}</p>{demoMode && <p>Connect Supabase to test encrypted purchases.</p>}</section></>;
+    </form><PendingRecovery store={store} /><p role="status">{message}</p>{demoMode && <p>Connect Supabase to test encrypted purchases.</p>}</section></>;
 }

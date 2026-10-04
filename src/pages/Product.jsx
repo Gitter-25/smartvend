@@ -9,12 +9,12 @@ import Input from '../components/Input';
 export default function Product() {
   const { products } = useData();
   return <><PageHeading title="Product slots" description="Manage the products in Slot 1 and Slot 2." />
-    <div className="two-columns">{products.map((product) => <SlotEditor key={product.id} product={product} />)}</div></>;
+    <div className="two-columns">{products.map((product) => <SlotEditor key={`${product.id}:${product.version ?? 0}`} product={product} />)}</div></>;
 }
 
 // Edit one slot independently so unsaved changes in the other slot stay intact.
 function SlotEditor({ product }) {
-  const { saveProduct: persistProduct } = useData();
+  const { saveProduct: persistProduct, loadData } = useData();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -28,7 +28,7 @@ function SlotEditor({ product }) {
     if (!name || !Number.isFinite(price) || price < 0.01 || price > 9999999999.99 || !Number.isSafeInteger(stock) || stock < 0 || stock > 2147483647) return setMessage('Enter a name, a positive price, and a whole stock count.');
     setBusy(true);
     try {
-      await persistProduct(product.id, { name, price: Math.round(price * 100) / 100, stock });
+      await persistProduct(product.id, { name, price: Math.round(price * 100) / 100, stock, version: product.version });
       setMessage(`Slot ${product.id} saved.`);
     } catch (error) { setMessage(error.message); }
     finally { setBusy(false); }
@@ -40,5 +40,5 @@ function SlotEditor({ product }) {
       <Input label="Price (₱)" id={`price-${product.id}`} name="price" type="number" defaultValue={product.price} min="0.01" step="0.01" required />
       <Input label="Stock count" id={`stock-${product.id}`} name="stock" type="number" defaultValue={product.stock} min="0" step="1" required />
       <Button type="submit" disabled={busy}>{busy ? 'Saving…' : `Save Slot ${product.id}`}</Button>
-    </form><p role="status">{message}</p><p>Update the stock count after refilling this slot.</p></section>;
+    </form><p role="status">{message}</p><Button type="button" onClick={loadData}>Reload latest slot values</Button><p>Reload after a conflict, then enter your changes again.</p></section>;
 }

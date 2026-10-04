@@ -4,3 +4,7 @@ project_id = "smartvend"
 # The handler validates the session with Auth.getUser and checks admin membership.
 # This permits current signing keys without relying on the legacy gateway check.
 verify_jwt = false
+
+[functions.device-vending]
+# The handler checks the dedicated machine token; admin JWTs are not device credentials.
+verify_jwt = false

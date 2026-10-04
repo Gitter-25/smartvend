@@ -22,7 +22,7 @@ export function DataProvider({ children }) {
     try {
       const results = await Promise.all([
         supabase.from('students').select('id,name,number,wallets(balance),cards(id,active)').order('created_at'),
-        supabase.from('products').select('id,name,price,stock').order('id'),
+        supabase.from('products').select('id,name,price,stock,version').order('id'),
         supabase.from('transactions').select('id,type,amount,status,created_at,note,slot_id,product_name,students(name)').order('created_at', { ascending: false }).limit(100),
       ]);
       if (current !== requestId.current) return;
@@ -63,7 +63,7 @@ export function DataProvider({ children }) {
   // Save one fixed slot without changing its number.
   async function saveProduct(id, next) {
     if (demoMode) { setProducts((rows) => rows.map((row) => row.id === id ? { ...row, ...next } : row)); return; }
-    const { error } = await supabase.from('products').update({ name: next.name, price: next.price, stock: next.stock }).eq('id', id).select('id').single();
+    const { error } = await supabase.rpc('save_slot', { slot: id, expected_version: next.version, product_name: next.name, product_price: next.price, stock_count: next.stock });
     if (error) throw error;
     await loadData();
   }
@@ -76,7 +76,7 @@ export function DataProvider({ children }) {
       return;
     }
     const { error } = await supabase.rpc('admin_topup', input);
-    if (error) throw error;
+    if (error) { error.definitive = /^[0-9A-Z]{5}$/.test(error.code ?? '') && !error.code.startsWith('08'); throw error; }
     await loadData();
   }
   // Send card identifiers only to the authenticated backend encryption function.
@@ -88,7 +88,9 @@ export function DataProvider({ children }) {
       if (error.context?.json) {
         try { message = (await error.context.json()).error || message; } catch { /* Keep the network error if no JSON was returned. */ }
       }
-      throw new Error(message);
+      const failure = new Error(message);
+      failure.definitive = error.context?.status === 400 || error.context?.status === 404 || error.context?.status === 409;
+      throw failure;
     }
     if (['enroll', 'purchase'].includes(input.action)) await loadData();
     return data;

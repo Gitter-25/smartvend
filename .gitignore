@@ -6,3 +6,5 @@ dist/
 .secrets.env
 .secrets.*
 supabase/.temp/
+
+.device.env
