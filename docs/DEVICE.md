@@ -5,7 +5,7 @@ The device API and admin recovery page are implemented. Reader/motor firmware, w
 ## Upgrade the existing Supabase project
 
 1. Pull the latest main branch and run `npm ci`.
-2. In Supabase SQL Editor run **005_safe_stock.sql**, then **006_device_vending.sql**, once each. Existing migrations 001–004 must already be installed. Do not rerun 001. Stop vending during the upgrade; refresh open admin tabs afterward.
+2. In Supabase SQL Editor run **005_safe_stock.sql**, then **006_device_vending.sql**, then **007_refunded_status.sql**, once each. Existing migrations 001–004 must already be installed. Do not rerun 001. Stop vending during the upgrade; refresh open admin tabs afterward.
 3. Redeploy `card-management` using `npx supabase functions deploy card-management` if your deployed version differs from the repository. Its existing keys stay unchanged.
 4. Run `node scripts/generate-device-key.js`. It creates `.device.env` and refuses to overwrite it. This file is ignored by Git; back it up privately.
 5. Run `npx supabase secrets set --env-file .device.env` and `npx supabase functions deploy device-vending` in your linked project.
@@ -63,3 +63,7 @@ The script sends one explicit JSON request. For authorize/start/status/finish us
 `npm test` runs encryption/handler tests, persistent request tests, and the real SQL migrations in embedded PostgreSQL (PGlite). SQL checks cover restricted roles, stale slot edits, once-only charging, stock reservations, repeated starts, completion, refund and contradictory outcomes. Existing SQL top-up and simulated-purchase suites also run automatically.
 
 These tests do not verify live Supabase deployment, simultaneous independent PostgreSQL connections, physical sensing, firmware persistence or real dispensing. Run the live acceptance checklist after deployment and hardware assembly. Stored UID encryption does not make UID-only cards clone resistant.
+
+## Refund status wording
+
+If migrations 001–006 are already installed, run only `007_refunded_status.sql`. It changes existing `Reversed` labels to `Refunded` and updates future refund responses. It does not change wallet balances or stock. No Edge Function redeployment or key changes are needed. Refresh the frontend after pulling this update.

@@ -61,6 +61,6 @@ export default function Transactions() {
       {!busy && <TransactionTable rows={rows} onSelect={setSelected} />}
       <Button disabled={busy || page === 0} onClick={() => setPage(page - 1)}>Previous</Button> <span>Page {page + 1}</span> <Button disabled={busy || !more} onClick={() => setPage(page + 1)}>Next</Button>
     </section>
-    {selected && <section className="card"><h3>{selected.id}</h3><p>{selected.student} · {selected.type} · {pesos(selected.amount)}</p><p>{new Date(selected.date).toLocaleString()} · {selected.status}</p><p>{selected.note}</p></section>}
+    {selected && <section className="card"><h3>{selected.id}</h3><p>{selected.student} · {selected.type} · {pesos(selected.amount)}</p><p>{new Date(selected.date).toLocaleString()} · {selected.status === 'Reversed' ? 'Refunded' : selected.status}</p><p>{selected.note}</p></section>}
   </>;
 }

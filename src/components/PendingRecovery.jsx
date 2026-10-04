@@ -15,7 +15,7 @@ export default function PendingRecovery({ store }) {
       const { data, error } = await supabase.from('transactions').select('id,status,amount,type').eq('id', id).maybeSingle();
       if (error) throw error;
       if (data) {
-        store.clear(); setMessage(`${data.type} already recorded: ₱${data.amount} · ${data.status}. Saved retry cleared.`);
+        store.clear(); setMessage(`${data.type} already recorded: ₱${data.amount} · ${data.status === 'Reversed' ? 'Refunded' : data.status}. Saved retry cleared.`);
       } else {
         const details = pending.identity ? `Student ${pending.identity.split(':')[0]}, Slot ${pending.identity.split(':')[1]}; enter the same card.` : `Student ${pending.student}, amount ₱${pending.amount}.`;
         setMessage(`No receipt found yet. Retry the original entry with its saved ID. ${details}`);

@@ -15,7 +15,7 @@ test('database migrations enforce stock versions, privileges and once-only vendi
       create schema auth; create table auth.users(id uuid primary key);
       create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true),'')::uuid $$;
       grant usage on schema public,auth to anon,authenticated,service_role;`);
-    for (const file of (await readdir('supabase/migrations')).sort()) await db.exec(await readFile(`supabase/migrations/${file}`, 'utf8'));
+    for (const file of (await readdir('supabase/migrations')).filter((file) => file !== '007_refunded_status.sql').sort()) await db.exec(await readFile(`supabase/migrations/${file}`, 'utf8'));
     await db.exec(`insert into auth.users values ('${actor}'); insert into public.admins values ('${actor}');
       select set_config('request.jwt.claim.sub','${actor}',false);
       insert into students(id,name,number) values('${student}','Test student','TEST-1');
@@ -38,6 +38,10 @@ test('database migrations enforce stock versions, privileges and once-only vendi
     assert.equal((await value(`select start_vend('${reference}') as result`)).result.shouldDispense, true);
     assert.equal((await value(`select start_vend('${reference}') as result`)).result.shouldDispense, false);
     await db.exec(`select finish_vend('${reference}',false,'Confirmed no item'); select finish_vend('${reference}',false,'Retry no item');`);
+    // Upgrade an already refunded legacy record, then verify retry does not refund twice.
+    await db.exec(await readFile('supabase/migrations/007_refunded_status.sql', 'utf8'));
+    assert.equal((await value(`select status from transactions where id='${reference}'`)).status, 'Refunded');
+    assert.equal((await value(`select finish_vend('${reference}',false,'Repeat refund') as result`)).result.state, 'Refunded');
     assert.equal((await value('select balance from wallets')).balance, '100.00');
     assert.equal((await value('select stock from products where id=1')).stock, 4);
     await assert.rejects(db.exec(`select finish_vend('${reference}',true,'Contradictory result');`), /differently/);
