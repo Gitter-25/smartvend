@@ -60,3 +60,6 @@ Follow [simulated purchase setup](docs/PURCHASES.md). This admin-only test uses 
 Follow [device setup](docs/DEVICE.md) to apply migrations 005–006 and deploy the device endpoint. This update adds version-checked stock edits, saved retry IDs across page reloads, server-paginated transaction filters, and admin reconciliation for uncertain dispensing. Run the [acceptance checklist](docs/ACCEPTANCE.md) before the demonstration.
 
 `npm test` now includes the actual SQL migrations in PGlite alongside crypto and endpoint tests. Physical hardware and live Supabase deployment are not covered by these local checks.
+
+## Hardware planning
+See the [hardware components and Shopee shortlist](docs/HARDWARE.md) for the ESP32-S3, proposed PN532 reader and backup cards, and provisional two-slot dispensing parts. Final motor and power choices depend on the products and mechanism.
