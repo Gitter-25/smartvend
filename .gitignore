@@ -8,3 +8,15 @@ dist/
 supabase/.temp/
 
 .device.env
+
+# Local runtime data and private backups
+data/
+backups/
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+.vscode/
+
+# Leftover local Deno settings from the previous backend
+/supabase/

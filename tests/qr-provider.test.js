@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHmac } from 'node:crypto';
-import { createQrProvider, verifyCheckout, verifyQrSignature, checkoutUrl } from '../supabase/functions/_shared/qr-provider.js';
-import { createQrHandler } from '../supabase/functions/_shared/qr-handler.js';
+import { createQrProvider, verifyCheckout, verifyQrSignature, checkoutUrl } from '../server/shared/qr-provider.js';
+import { createQrHandler } from '../server/shared/qr-handler.js';
 const id = '00000000-0000-0000-0000-000000000001';
 
 // Model the provider's documented checkout resource, with no real credentials or PII.

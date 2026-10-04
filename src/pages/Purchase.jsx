@@ -3,7 +3,7 @@ import { pendingStore, cardFingerprint } from '../lib/pending-request';
 import { useAuth } from '../data/AuthContext';
 import { useState } from 'react';
 import { useData } from '../data/AppData';
-import { demoMode } from '../lib/supabase';
+import { demoMode } from '../lib/api';
 import { pesos } from '../lib/format';
 import PageHeading from '../components/PageHeading';
 import Button from '../components/Button';
@@ -49,5 +49,5 @@ export default function Purchase() {
       </select></label>
       <Input label="Enrolled card UID" id="purchase-uid" name="uid" required maxLength={80} autoComplete="off" disabled={busy || demoMode} />
       <Button type="submit" disabled={busy || demoMode || !student}>{busy ? 'Processing…' : 'Simulate purchase'}</Button>
-    </form><PendingRecovery store={store} /><p role="status">{message}</p>{demoMode && <p>Connect Supabase to test encrypted purchases.</p>}</section></>;
+    </form><PendingRecovery store={store} /><p role="status">{message}</p>{demoMode && <p>Start the local server to test encrypted purchases.</p>}</section></>;
 }

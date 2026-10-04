@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useData } from '../data/AppData';
-import { supabase, demoMode } from '../lib/supabase';
+import { api, apiResult, demoMode } from '../lib/api';
 import PageHeading from '../components/PageHeading';
 import TransactionTable from '../components/TransactionTable';
 import Button from '../components/Button';
@@ -29,18 +29,18 @@ export default function Transactions() {
         if (demoMode) {
           data = transactions.filter((row) => filters.type === 'All' || row.type === filters.type).slice(page * size, (page + 1) * size + 1);
         } else {
-          let query = supabase.from('transactions').select('id,type,amount,status,created_at,note,slot_id,product_name,payment_method,students(name)').order('created_at', { ascending: false }).order('id', { ascending: false });
-          if (filters.type !== 'All') query = query.eq('type', filters.type);
-          if (filters.student) query = query.eq('student_id', filters.student);
-          if (filters.slot) query = query.eq('slot_id', Number(filters.slot));
+          const params = new URLSearchParams({ limit: String(size + 1), offset: String(page * size) });
+          if (filters.type !== 'All') params.set('type', filters.type);
+          if (filters.student) params.set('student', filters.student);
+          if (filters.slot) params.set('slot', filters.slot);
           if (filters.date) {
             const start = new Date(`${filters.date}T00:00:00`);
             const end = new Date(start); end.setDate(end.getDate() + 1);
-            query = query.gte('created_at', start.toISOString()).lt('created_at', end.toISOString());
+            params.set('start', start.toISOString()); params.set('end', end.toISOString());
           }
-          const result = await query.range(page * size, (page + 1) * size);
+          const result = await apiResult(`/transactions?${params}`);
           if (result.error) throw result.error;
-          data = result.data.map((row) => ({ ...row, date: row.created_at, student: row.students?.name ?? (row.payment_method === 'QR test' ? 'QR customer (test)' : 'Unknown'), note: row.slot_id ? `Slot ${row.slot_id} · ${row.product_name} · ${row.note}` : row.note }));
+          data = result.data;
         }
         if (!cancelled) { setRows(data.slice(0, size)); setMore(data.length > size); }
       } catch (failure) { if (!cancelled) { setRows([]); setMore(false); setError(failure.message); } }

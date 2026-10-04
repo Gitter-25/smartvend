@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useData } from '../data/AppData';
-import { demoMode } from '../lib/supabase';
+import { demoMode } from '../lib/api';
 import { pesos } from '../lib/format';
 import PageHeading from '../components/PageHeading';
 import Button from '../components/Button';

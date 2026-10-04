@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cardLookup, decryptCard, encryptCard, normalizeCard } from '../supabase/functions/_shared/card-crypto.js';
+import { cardLookup, decryptCard, encryptCard, normalizeCard } from '../server/shared/card-crypto.js';
 const encryptionKey = '11'.repeat(32);
 const lookupKey = '22'.repeat(32);
 const uid = '04A1B2C3D4E5F6';

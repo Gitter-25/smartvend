@@ -1,68 +1,57 @@
 # SmartVend
 
-A small subject project: two fixed product slots, one machine, manual admin wallet top-ups, NFC wallet purchases, QR sandbox API payments, and encryption. Finish the software before connecting ESP32-S3 hardware.
+A small classroom vending project: one ESP32-S3, two slots, an admin React website, encrypted RFID identifiers, admin-funded wallets, and PayMongo sandbox checkout via QR.
 
-## Start
-Use Node.js 22.12+ (Node 24 recommended).
+The backend is now **Express + SQLite**. The React app and ESP32 call an HTTP API; only the server opens the database file. Supabase accounts, Edge Functions, Deno, and SQL Editor migrations are no longer needed for this version.
+
+## Run locally (Windows or macOS/Linux)
+
+Install **Node.js 24 LTS**. From the repository folder:
 
 ```sh
-npm install
+npm ci
+npm run setup
+npm run server
+```
+
+Setup asks for a new local admin email and password, creates two empty product slots and a SQLite database, and generates independent backend keys. In a second terminal:
+
+```sh
 npm run dev
 ```
 
-Open the local URL printed by Vite. To connect your project, follow [Phase 3 setup](docs/SETUP.md). `.env.local` belongs beside `package.json`; `.env.example` is a blank template. Keep secrets out of Git.
+Open the Vite URL (normally http://localhost:5173) and sign in with the administrator you just created. Keep both terminals running. Configure products and stock, register a fictional student, enroll a test card, and credit their wallet.
 
-## Current features
-- Admin email/password login and protected routes.
-- Student registration with a zero-balance wallet.
-- Separate product, price, and stock settings for Slot 1 and Slot 2.
-- Transaction history and filtering.
-- Admin wallet credits with an atomic transaction receipt and safe request retries.
-- Backend encrypted card enrollment, verification, and enable/disable.
+For a single-server demonstration, run `npm run build`, then `npm start`, and open http://localhost:3001.
 
-Live card enrollment requires the deployment steps in [Phase 4 encryption](docs/ENCRYPTION.md). Simulated purchase authorization is implemented; physical hardware is still pending. The React app cannot credit balances or create financial transactions directly.
+See [local setup](docs/SETUP.md), [database design](docs/DATABASE.md), [QR sandbox payments](docs/QR_PAYMENTS.md), [device protocol](docs/DEVICE.md), and [hardware/Shopee shortlist](docs/HARDWARE.md).
 
-For a sample-data preview, explicitly set `VITE_DEMO_MODE=true`. It never connects to Supabase and resets edits on refresh. Encryption is available only in connected mode.
+## What is retained
 
-## Check
+- Administrator login with salted password hashes and server-side cookie sessions.
+- Student registration, encrypted card enrollment/verification, and card enable/disable.
+- Manual top-ups, card purchases, centavo prices, and transaction filters.
+- Version-checked stock edits and one unresolved vending operation at a time.
+- Once-only authorization/settlement, explicit physical-outcome recovery, and QR test payment verification.
+- Sandbox QR checkout, signed webhooks, cancellation and provider-refund verification. No live-money mode.
+
+## Existing Supabase users
+
+Your cloud project is not deleted or modified. Existing students, balances, cards, receipts, credentials, and in-flight jobs are **not automatically imported**. The local setup starts a new database and creates a new admin; use fictional data for the new test run. Finish or reconcile old vending/payment jobs before changing a physical device's endpoint. Preserve the old project and original encryption keys if you need to transfer its records later.
+
+The old code, SQL migrations, and instructions are preserved under `legacy/` for reference. Do not run them for the new local version. Previous untracked Deno editor files can remain locally; they are unused.
+
+## Private files and backups
+
+Runtime data is stored in `data/smartvend.sqlite`. Backend configuration is in `.env.server`; neither is committed. Back up the database using `npm run backup` and back up `.env.server` privately as well. Do not copy only a live SQLite file without its WAL; use the backup command or stop the server first. Losing encryption keys makes enrolled card identifiers unreadable.
+
+## Checks and limits
+
 ```sh
 npm test
 npm run build
 ```
 
-GitHub Actions runs these checks on pushes and pull requests. Named functions have short explanatory comments. Shared components keep repeated UI code small.
+Tests include real Express HTTP requests, SQLite persistence/rollback, authentication, encrypted cards, money/stock retries, QR settlement, and signed webhook verification with synthetic provider responses. GitHub Actions runs tests and the production build on Node 24.
 
-## Roadmap
-1. React project setup — done
-2. Admin screens — done
-3. Supabase authentication and data — implemented, confirmed working by user
-4. Backend card encryption — implemented, confirmed working by user; two-slot update added
-5. Manual admin top-ups — implemented; run migration 003
-6. Simulated wallet purchases — implemented; run migration 004 and redeploy card-management
-7. Device backend and admin recovery — implemented; apply migrations 005–006 and deploy device-vending. ESP32-S3 firmware and physical integration remain pending
-8. Final testing and presentation — pending
-
-## Routes
-`/login`, `/dashboard`, `/students`, `/product`, `/transactions`, `/purchase`, `/qr`, `/machine`.
-
-For production hosting, configure app routes to serve `index.html`.
-
-## Two-slot update
-After pulling this update, run [002_two_slots.sql](supabase/migrations/002_two_slots.sql) in Supabase SQL Editor. Do not rerun 001_initial.sql. Slot 1 keeps its current settings; Slot 2 starts with zero stock. Both slots share one ESP32-S3 and one NFC reader. No Edge Function redeployment or key changes are needed.
-
-## Phase 5
-Follow [admin top-up setup](docs/TOPUPS.md). External Maya payments are omitted to keep the subject project small.
-
-## Phase 6
-Follow [simulated purchase setup](docs/PURCHASES.md). This admin-only test uses enrolled encrypted cards and updates wallet credit, slot stock, and receipts atomically. It does not physically dispense items.
-
-## Reliability and device backend update
-Follow [device setup](docs/DEVICE.md) to apply migrations 005–006 and deploy the device endpoint. This update adds version-checked stock edits, saved retry IDs across page reloads, server-paginated transaction filters, and admin reconciliation for uncertain dispensing. Run the [acceptance checklist](docs/ACCEPTANCE.md) before the demonstration.
-
-`npm test` now includes the actual SQL migrations in PGlite alongside crypto and endpoint tests. Physical hardware and live Supabase deployment are not covered by these local checks.
-
-## Hardware planning
-See the [hardware components and Shopee shortlist](docs/HARDWARE.md) for the ESP32-S3, proposed PN532 reader and backup cards, and provisional two-slot dispensing parts. Final motor and power choices depend on the products and mechanism.
-
-## QR sandbox API payments
-Follow [QR payment setup](docs/QR_PAYMENTS.md): apply migration 008 after 001–007, configure a PayMongo test secret, deploy `qr-payments`, and rebuild the frontend. The QR opens a sandbox checkout URL with GCash test authorization; it is not a bank-app QR Ph code. Payment is verified server-side before the existing device start/finish flow. Configure the signed webhook for unattended use. Live payments are disabled. Provider-account testing and physical integration remain pending.
+Actual PayMongo account configuration, public HTTPS/webhook delivery, ESP32 firmware, mechanical assembly, and sensor testing remain to be completed. The local computer must stay running for vending. RFID can operate on a reachable local backend without external payments; PayMongo testing requires internet access.

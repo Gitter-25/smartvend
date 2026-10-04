@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useData } from '../data/AppData';
-import { demoMode } from '../lib/supabase';
+import { demoMode } from '../lib/api';
 import Button from './Button';
 import Input from './Input';
 

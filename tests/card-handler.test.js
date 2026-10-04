@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createCardHandler } from '../supabase/functions/_shared/card-handler.js';
+import { createCardHandler } from '../server/shared/card-handler.js';
 const studentId = '00000000-0000-0000-0000-000000000001';
 const uid = '04:A1:B2:C3:D4:E5:F6';
 

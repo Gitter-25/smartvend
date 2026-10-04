@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase, demoMode } from '../lib/supabase';
+import { api, apiResult, demoMode } from '../lib/api';
 import { useData } from '../data/AppData';
 import PageHeading from '../components/PageHeading';
 import Button from '../components/Button';
@@ -16,12 +16,8 @@ export default function Machine() {
   async function refresh() {
     if (demoMode) return;
     try {
-      const [machine, pending] = await Promise.all([
-        supabase.from('machine').select('last_seen').eq('id', 1).single(),
-        supabase.from('vend_jobs').select('id,state,created_at,transactions(slot_id,product_name,amount,payment_method)').in('state', ['AwaitingPayment', 'Authorized', 'Dispensing', 'RefundPending']).order('created_at'),
-      ]);
-      if (machine.error || pending.error) throw machine.error || pending.error;
-      setSeen(machine.data.last_seen); setJobs(pending.data); setError('');
+      const data = await api('/machine');
+      setSeen(data.last_seen); setJobs(data.jobs); setError('');
     } catch (failure) { setError(failure.message); }
   }
   useEffect(() => { refresh(); }, []);
@@ -32,7 +28,7 @@ export default function Machine() {
     const form = new FormData(event.currentTarget);
     setBusy(true);
     try {
-      const { error } = await supabase.rpc('resolve_vend', { request_id: job.id, dispensed: form.get('outcome') === 'yes', reason: form.get('reason').trim() });
+      const { error } = await apiResult('/resolve', { request_id: job.id, dispensed: form.get('outcome') === 'yes', reason: form.get('reason').trim() });
       if (error) throw error;
       await refresh(); await loadData();
     } catch (failure) { setError(failure.message); }

@@ -2,7 +2,7 @@
 const endpoint = process.env.SMARTVEND_DEVICE_URL;
 const token = process.env.DEVICE_TOKEN;
 const input = process.argv[2];
-if (!endpoint?.startsWith('https://') || !token || !input) {
+if (!(endpoint?.startsWith('https://') || /^http:\/\/(localhost|127\.0\.0\.1)(:|\/)/.test(endpoint ?? '')) || !token || !input) {
   console.error('Set SMARTVEND_DEVICE_URL and DEVICE_TOKEN, then pass a JSON request body.');
   process.exit(1);
 }

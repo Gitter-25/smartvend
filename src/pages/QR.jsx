@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import QRCode from 'qrcode';
 import { useAuth } from '../data/AuthContext';
 import { useData } from '../data/AppData';
-import { supabase, demoMode } from '../lib/supabase';
+import { api, apiResult, demoMode } from '../lib/api';
 import { pendingStore } from '../lib/pending-request';
 import { pesos } from '../lib/format';
 import PageHeading from '../components/PageHeading';
@@ -11,13 +11,7 @@ import Button from '../components/Button';
 
 // Invoke the authenticated payment backend without accepting browser payment assertions.
 async function requestQr(body) {
-  const { data, error } = await supabase.functions.invoke('qr-payments', { body });
-  if (error) {
-    let message = error.message;
-    try { message = (await error.context.json()).error ?? message; } catch { /* Network errors may not have JSON. */ }
-    throw new Error(message);
-  }
-  return data;
+  return api('/qr-payments', body);
 }
 
 // Display a provider checkout QR and recover the saved request after a browser reload.
@@ -38,8 +32,8 @@ export default function QR() {
   // Include server-side orders created on another browser or by the ESP32.
   async function refreshRecent() {
     if (demoMode) return;
-    const result = await supabase.from('qr_orders').select('id,created_at,vend_jobs(state)').order('created_at', { ascending: false }).limit(20);
-    if (result.error) { setError('QR data unavailable. Apply migration 008 and deploy qr-payments.'); return; }
+    const result = await apiResult('/qr-orders');
+    if (result.error) { setError('QR data unavailable. Start the local Express server.'); return; }
     setRecent(result.data);
   }
   useEffect(() => { refreshRecent(); }, []);
@@ -98,7 +92,7 @@ export default function QR() {
   async function clear() {
     if (working.current) return;
     if (!terminal && saved) {
-      const result = await supabase.from('qr_orders').select('id').eq('id', saved.requestId).maybeSingle();
+      const result = await apiResult(`/qr-orders/${saved.requestId}`);
       if (result.error || result.data) { setError('Check or cancel the saved order before starting another.'); return; }
     }
     store.clear(); setSaved(null); setOrder(null); setError('');
@@ -129,7 +123,7 @@ export default function QR() {
         <p><Link to="/machine">Machine status and physical outcome recovery</Link></p>
       </>}
       {saved && <Button disabled={busy || (!!order && !terminal)} onClick={clear}>{terminal ? 'Start another checkout' : 'Clear reference only if no order exists'}</Button>}
-      {demoMode && <p>Connect Supabase and configure PayMongo test mode to use this feature.</p>}
+      {demoMode && <p>Start the local server and configure PayMongo test mode to use this feature.</p>}
     </section>
     <section className="card"><h3>Recent QR orders</h3><Button disabled={busy || demoMode} onClick={refreshRecent}>Refresh orders</Button>
       {recent.map((row) => <p key={row.id}><Button disabled={busy} onClick={() => reopen(row.id)}>{row.id}</Button> · {row.vend_jobs.state}</p>)}

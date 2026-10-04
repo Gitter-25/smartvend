@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createDeviceHandler } from '../supabase/functions/_shared/device-handler.js';
-import { encryptCard } from '../supabase/functions/_shared/card-crypto.js';
+import { createDeviceHandler } from '../server/shared/device-handler.js';
+import { encryptCard } from '../server/shared/card-crypto.js';
 const deviceToken = '33'.repeat(32);
 const encryptionKey = '11'.repeat(32);
 const lookupKey = '22'.repeat(32);

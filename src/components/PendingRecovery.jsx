@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase, demoMode } from '../lib/supabase';
+import { api, apiResult, demoMode } from '../lib/api';
 import Button from './Button';
 
 // Resolve a lost success response using its saved receipt without charging again.
@@ -12,7 +12,7 @@ export default function PendingRecovery({ store }) {
       const pending = store.read();
       if (!pending) { setMessage('No saved request to recover.'); return; }
       const id = pending.request_id || pending.requestId;
-      const { data, error } = await supabase.from('transactions').select('id,status,amount,type').eq('id', id).maybeSingle();
+      const { data, error } = await apiResult(`/receipts/${id}`);
       if (error) throw error;
       if (data) {
         store.clear(); setMessage(`${data.type} already recorded: ₱${data.amount} · ${data.status === 'Reversed' ? 'Refunded' : data.status}. Saved retry cleared.`);

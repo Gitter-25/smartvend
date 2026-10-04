@@ -31,7 +31,7 @@ The PN532 supports 13.56 MHz ISO14443A/MIFARE, with additional protocols describ
 
 A university ID is not automatically compatible: it might use 125 kHz, another protocol, or an identifier that is unsuitable for this implementation. Scan a sample several times and after power cycling; confirm a stable identifier and consistent formatting before enrollment. The planned firmware initially targets ISO14443A UID reads.
 
-If the student ID fails this test, assign a separate SmartVend card to the student's account. Do not copy or rewrite the university ID. Wallet credit stays in Supabase; no wallet value needs to be written onto the card. UID-based identification is suitable for this classroom prototype but is not clone-resistant payment authentication; backend encryption does not change that property.
+If the student ID fails this test, assign a separate SmartVend card to the student's account. Do not copy or rewrite the university ID. Wallet credit stays in the local SQLite database; no wallet value needs to be written onto the card. UID-based identification is suitable for this classroom prototype but is not clone-resistant payment authentication; backend encryption does not change that property.
 
 ## Dispensing parts: provisional servo option
 
@@ -68,7 +68,7 @@ The controller will read a card, accept a slot selection, authorize a purchase, 
 
 Use drop feedback and mechanism position to assess the outcome. A missed beam or timeout alone does not prove that no item dispensed: leave ambiguous outcomes pending for stopped-machine inspection and admin resolution. Use the existing Refunded outcome only when non-dispensing has been established.
 
-Only the dedicated device credential belongs on the controller. Card encryption keys and the Supabase service-role key stay on the backend. Validate HTTPS certificates.
+Only the dedicated device credential belongs on the controller. Card encryption keys and the administrator password stay on the backend. Validate HTTPS certificates.
 
 Before demonstrating: test repeated taps, insufficient balance, empty slots, one-item release under full load, jams, missed sensor events, power loss during movement, and network loss before/after authorization. Confirm wallet, stock, and transaction outcomes against [ACCEPTANCE.md](ACCEPTANCE.md).
 

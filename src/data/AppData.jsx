@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { supabase, demoMode } from '../lib/supabase';
+import { api, apiResult, demoMode } from '../lib/api';
 import { useAuth } from './AuthContext';
 import { sampleStudents, sampleTransactions } from './samples';
 const DataContext = createContext(null);
@@ -20,18 +20,9 @@ export function DataProvider({ children }) {
     const current = ++requestId.current;
     setLoading(true); setError('');
     try {
-      const results = await Promise.all([
-        supabase.from('students').select('id,name,number,wallets(balance),cards(id,active)').order('created_at'),
-        supabase.from('products').select('id,name,price,stock,version').order('id'),
-        supabase.from('transactions').select('id,type,amount,status,created_at,note,slot_id,product_name,payment_method,students(name)').order('created_at', { ascending: false }).limit(100),
-      ]);
+      const result = await api('/data');
       if (current !== requestId.current) return;
-      const failure = results.find((result) => result.error);
-      if (failure) throw failure.error;
-      setStudents(results[0].data.map((row) => ({ ...row, balance: Number(row.wallets?.balance ?? 0), cardId: row.cards?.id, active: row.cards?.active ?? false })));
-      if (results[1].data.length !== 2) throw new Error('Run the two-slot migration (002_two_slots.sql), then click Retry.');
-      setProducts(results[1].data.map((row) => ({ ...row, price: Number(row.price) })));
-      setTransactions(results[2].data.map((row) => ({ ...row, student: row.students?.name ?? (row.payment_method === 'QR test' ? 'QR customer (test)' : 'Unknown'), amount: Number(row.amount), date: row.created_at, note: row.slot_id ? `Slot ${row.slot_id} · ${row.product_name} · ${row.note}` : row.note })));
+      setStudents(result.students); setProducts(result.products); setTransactions(result.transactions);
     } catch (failure) { if (current === requestId.current) setError(failure.message || 'Could not load data.'); }
     finally { if (current === requestId.current) setLoading(false); }
   }
@@ -47,7 +38,7 @@ export function DataProvider({ children }) {
   // Create a student and zero-balance wallet atomically on the backend.
   async function addStudent(student) {
     if (demoMode) { setStudents((rows) => [...rows, { ...student, id: crypto.randomUUID(), balance: 0, active: true }]); return; }
-    const { error } = await supabase.rpc('register_student', { student_name: student.name, student_number: student.number });
+    const { error } = await apiResult('/students', student);
     if (error) throw error;
     await loadData();
   }
@@ -55,7 +46,7 @@ export function DataProvider({ children }) {
   // Change only the card's enabled state; balances are never edited here.
   async function toggleCard(student) {
     if (demoMode) { setStudents((rows) => rows.map((row) => row.id === student.id ? { ...row, active: !row.active } : row)); return; }
-    const { error } = await supabase.from('cards').update({ active: !student.active }).eq('id', student.cardId).select('id').single();
+    const { error } = await apiResult(`/cards/${student.cardId}`, { active: !student.active });
     if (error) throw error;
     await loadData();
   }
@@ -63,7 +54,7 @@ export function DataProvider({ children }) {
   // Save one fixed slot without changing its number.
   async function saveProduct(id, next) {
     if (demoMode) { setProducts((rows) => rows.map((row) => row.id === id ? { ...row, ...next } : row)); return; }
-    const { error } = await supabase.rpc('save_slot', { slot: id, expected_version: next.version, product_name: next.name, product_price: next.price, stock_count: next.stock });
+    const { error } = await apiResult(`/products/${id}`, next);
     if (error) throw error;
     await loadData();
   }
@@ -75,23 +66,14 @@ export function DataProvider({ children }) {
       setTransactions((rows) => [{ id: input.request_id, student: student.name, type: 'Top-up', amount: input.amount, status: 'Completed', date: new Date().toISOString(), note: 'Demo admin credit only' }, ...rows]);
       return;
     }
-    const { error } = await supabase.rpc('admin_topup', input);
-    if (error) { error.definitive = /^[0-9A-Z]{5}$/.test(error.code ?? '') && !error.code.startsWith('08'); throw error; }
+    const { error } = await apiResult('/topups', input);
+    if (error) throw error;
     await loadData();
   }
   // Send card identifiers only to the authenticated backend encryption function.
   async function manageCard(input) {
-    if (demoMode) throw new Error('Connect Supabase to use encrypted enrollment.');
-    const { data, error } = await supabase.functions.invoke('card-management', { body: input });
-    if (error) {
-      let message = error.message;
-      if (error.context?.json) {
-        try { message = (await error.context.json()).error || message; } catch { /* Keep the network error if no JSON was returned. */ }
-      }
-      const failure = new Error(message);
-      failure.definitive = error.context?.status === 400 || error.context?.status === 404 || error.context?.status === 409;
-      throw failure;
-    }
+    if (demoMode) throw new Error('Start the local server to use encrypted enrollment.');
+    const data = await api('/card-management', input);
     if (['enroll', 'purchase'].includes(input.action)) await loadData();
     return data;
   }
