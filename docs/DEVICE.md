@@ -67,3 +67,7 @@ These tests do not verify live Supabase deployment, simultaneous independent Pos
 ## Refund status wording
 
 If migrations 001–006 are already installed, run only `007_refunded_status.sql`. It changes existing `Reversed` labels to `Refunded` and updates future refund responses. It does not change wallet balances or stock. No Edge Function redeployment or key changes are needed. Refresh the frontend after pulling this update.
+
+## QR API purchases
+
+Migration 008 adds QR sandbox payments. Follow [QR_PAYMENTS.md](QR_PAYMENTS.md) for setup and the payment endpoint. QR checkout uses the same request UUID and existing device start/finish calls after API verification. QR non-dispensing enters RefundPending instead of crediting a wallet. AwaitingPayment and RefundPending also block new authorizations. Firmware must understand these states before enabling the QR option.

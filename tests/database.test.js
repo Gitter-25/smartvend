@@ -15,7 +15,7 @@ test('database migrations enforce stock versions, privileges and once-only vendi
       create schema auth; create table auth.users(id uuid primary key);
       create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true),'')::uuid $$;
       grant usage on schema public,auth to anon,authenticated,service_role;`);
-    for (const file of (await readdir('supabase/migrations')).filter((file) => file !== '007_refunded_status.sql').sort()) await db.exec(await readFile(`supabase/migrations/${file}`, 'utf8'));
+    for (const file of (await readdir('supabase/migrations')).filter((file) => file < '007_').sort()) await db.exec(await readFile(`supabase/migrations/${file}`, 'utf8'));
     await db.exec(`insert into auth.users values ('${actor}'); insert into public.admins values ('${actor}');
       select set_config('request.jwt.claim.sub','${actor}',false);
       insert into students(id,name,number) values('${student}','Test student','TEST-1');

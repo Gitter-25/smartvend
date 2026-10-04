@@ -29,7 +29,7 @@ export default function Transactions() {
         if (demoMode) {
           data = transactions.filter((row) => filters.type === 'All' || row.type === filters.type).slice(page * size, (page + 1) * size + 1);
         } else {
-          let query = supabase.from('transactions').select('id,type,amount,status,created_at,note,slot_id,product_name,students(name)').order('created_at', { ascending: false }).order('id', { ascending: false });
+          let query = supabase.from('transactions').select('id,type,amount,status,created_at,note,slot_id,product_name,payment_method,students(name)').order('created_at', { ascending: false }).order('id', { ascending: false });
           if (filters.type !== 'All') query = query.eq('type', filters.type);
           if (filters.student) query = query.eq('student_id', filters.student);
           if (filters.slot) query = query.eq('slot_id', Number(filters.slot));
@@ -40,7 +40,7 @@ export default function Transactions() {
           }
           const result = await query.range(page * size, (page + 1) * size);
           if (result.error) throw result.error;
-          data = result.data.map((row) => ({ ...row, date: row.created_at, student: row.students?.name ?? 'Unknown', note: row.slot_id ? `Slot ${row.slot_id} · ${row.product_name} · ${row.note}` : row.note }));
+          data = result.data.map((row) => ({ ...row, date: row.created_at, student: row.students?.name ?? (row.payment_method === 'QR test' ? 'QR customer (test)' : 'Unknown'), note: row.slot_id ? `Slot ${row.slot_id} · ${row.product_name} · ${row.note}` : row.note }));
         }
         if (!cancelled) { setRows(data.slice(0, size)); setMore(data.length > size); }
       } catch (failure) { if (!cancelled) { setRows([]); setMore(false); setError(failure.message); } }

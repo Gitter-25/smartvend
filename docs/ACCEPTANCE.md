@@ -27,3 +27,7 @@ Use test students, test cards and test credit. Record results before classroom d
 - Test device reboot in every phase. Never actuate the same request twice.
 - Stop the device, inspect and resolve an uncertain outcome; clear the resolved local job before restarting.
 - Confirm price/product changes match the physical products loaded in each slot.
+
+## QR sandbox API acceptance
+
+After migration 008 and provider configuration, follow [QR_PAYMENTS.md](QR_PAYMENTS.md). Verify unpaid/failed tests never dispense; successful sandbox API payment authorizes only one start; repeated status/webhooks preserve stock and wallets; expiry restores stock once; late payment cannot auto-dispense; QR failure restores stock without wallet credit; and only a matching full provider refund becomes Refunded. Complete provider tests with no real money and repeat physical sensing checks after hardware integration.

@@ -1,6 +1,6 @@
 # SmartVend
 
-A small subject project: two fixed product slots, one machine, manual admin wallet top-ups, NFC wallet purchases, and encryption. Finish the software before connecting ESP32-S3 hardware.
+A small subject project: two fixed product slots, one machine, manual admin wallet top-ups, NFC wallet purchases, QR sandbox API payments, and encryption. Finish the software before connecting ESP32-S3 hardware.
 
 ## Start
 Use Node.js 22.12+ (Node 24 recommended).
@@ -43,7 +43,7 @@ GitHub Actions runs these checks on pushes and pull requests. Named functions ha
 8. Final testing and presentation — pending
 
 ## Routes
-`/login`, `/dashboard`, `/students`, `/product`, `/transactions`, `/purchase`.
+`/login`, `/dashboard`, `/students`, `/product`, `/transactions`, `/purchase`, `/qr`, `/machine`.
 
 For production hosting, configure app routes to serve `index.html`.
 
@@ -63,3 +63,6 @@ Follow [device setup](docs/DEVICE.md) to apply migrations 005–006 and deploy t
 
 ## Hardware planning
 See the [hardware components and Shopee shortlist](docs/HARDWARE.md) for the ESP32-S3, proposed PN532 reader and backup cards, and provisional two-slot dispensing parts. Final motor and power choices depend on the products and mechanism.
+
+## QR sandbox API payments
+Follow [QR payment setup](docs/QR_PAYMENTS.md): apply migration 008 after 001–007, configure a PayMongo test secret, deploy `qr-payments`, and rebuild the frontend. The QR opens a sandbox checkout URL with GCash test authorization; it is not a bank-app QR Ph code. Payment is verified server-side before the existing device start/finish flow. Configure the signed webhook for unattended use. Live payments are disabled. Provider-account testing and physical integration remain pending.

@@ -18,7 +18,7 @@ export default function Machine() {
     try {
       const [machine, pending] = await Promise.all([
         supabase.from('machine').select('last_seen').eq('id', 1).single(),
-        supabase.from('vend_jobs').select('id,state,created_at,transactions(slot_id,product_name,amount)').in('state', ['Authorized', 'Dispensing']).order('created_at'),
+        supabase.from('vend_jobs').select('id,state,created_at,transactions(slot_id,product_name,amount,payment_method)').in('state', ['AwaitingPayment', 'Authorized', 'Dispensing', 'RefundPending']).order('created_at'),
       ]);
       if (machine.error || pending.error) throw machine.error || pending.error;
       setSeen(machine.data.last_seen); setJobs(pending.data); setError('');
@@ -43,10 +43,10 @@ export default function Machine() {
       <Button onClick={refresh} disabled={busy || demoMode}>Refresh status</Button><p role="status">{error}</p></section>
     <section className="card"><h3>Unresolved dispensing</h3><p>Stop the device and inspect the output before resolving. An unknown result must remain pending. Resume the device only after it clears the resolved job.</p>
       {!jobs.length && <p>No unresolved jobs{demoMode ? ' in this preview' : ''}.</p>}
-      {jobs.map((job) => <form key={job.id} onSubmit={(event) => resolve(event, job)}><h4>{job.transactions?.product_name} · Slot {job.transactions?.slot_id}</h4><p>{job.id} · {job.state}</p>
-        <label>Confirmed outcome<select name="outcome" required disabled={busy}><option value="">Select after inspection</option>{job.state === 'Dispensing' && <option value="yes">Item dispensed — keep charge</option>}<option value="no">No item dispensed — refund and restore stock</option></select></label>
+      {jobs.map((job) => <form key={job.id} onSubmit={(event) => resolve(event, job)}><h4>{job.transactions?.product_name} · Slot {job.transactions?.slot_id}</h4><p>{job.id} · {job.state} · {job.transactions?.payment_method}</p>{['AwaitingPayment', 'RefundPending'].includes(job.state) ? <p>Continue payment or refund recovery on the <a href="/qr">QR page</a>.</p> : <>
+        <label>Confirmed outcome<select name="outcome" required disabled={busy}><option value="">Select after inspection</option>{job.state === 'Dispensing' && <option value="yes">Item dispensed — keep charge</option>}<option value="no">No item dispensed — restore stock and settle payment</option></select></label>
         <label>Inspection note<input name="reason" required minLength={3} maxLength={200} disabled={busy} /></label>
         <label><input type="checkbox" required disabled={busy} /> Device stopped and physical outcome checked</label>
-        <Button disabled={busy}>Record confirmed outcome</Button></form>)}
+        <Button type="submit" disabled={busy}>Record confirmed outcome</Button></>}</form>)}
     </section></>;
 }

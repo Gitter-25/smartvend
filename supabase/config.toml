@@ -8,3 +8,7 @@ verify_jwt = false
 [functions.device-vending]
 # The handler checks the dedicated machine token; admin JWTs are not device credentials.
 verify_jwt = false
+
+[functions.qr-payments]
+# Admin/device authentication and test webhook signatures are verified inside the handler.
+verify_jwt = false

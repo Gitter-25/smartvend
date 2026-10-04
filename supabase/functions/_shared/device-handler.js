@@ -2,7 +2,7 @@ import { cardLookup, decryptCard, normalizeCard } from './card-crypto.js';
 const uuid = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
 
 // Compare fixed-size SHA-256 digests without exposing the device secret.
-async function sameToken(provided, expected) {
+export async function sameToken(provided, expected) {
   const digest = async (value) => new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value)));
   const [left, right] = await Promise.all([digest(provided), digest(expected)]);
   let difference = 0;
