@@ -23,5 +23,5 @@ export default function PendingRecovery({ store }) {
     } catch (error) { setMessage(error.message); }
     finally { setBusy(false); }
   }
-  return demoMode ? null : <div><Button type="button" onClick={checkReceipt} disabled={busy}>{busy ? 'Checking…' : 'Check saved request receipt'}</Button><p role="status">{message}</p></div>;
+  return demoMode ? null : <div className="recovery-actions"><Button className="secondary" type="button" onClick={checkReceipt} disabled={busy}>{busy ? 'Checking…' : 'Check saved request receipt'}</Button><p role="status">{message}</p></div>;
 }

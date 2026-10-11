@@ -37,7 +37,7 @@ export default function WalletTopup() {
     finally { setBusy(false); }
   }
   return <section className="card"><h3>Admin top-up</h3><p>Manually add project wallet credit and record a completed transaction.</p>
-    <p>After an interrupted response, select the same student and amount to safely retry—even after a reload.</p><form onSubmit={submitTopup}>
+    <p className="helper-text">After an interrupted response, select the same student and amount to safely retry—even after a reload.</p><form onSubmit={submitTopup}>
       <label htmlFor="wallet-student">Student<select id="wallet-student" value={student?.id || ''} disabled={busy} onChange={(event) => setSelected(event.target.value)}>
         {!students.length && <option value="">Register a student first</option>}
         {students.map((row) => <option key={row.id} value={row.id}>{row.name} · {row.number}</option>)}

@@ -29,7 +29,7 @@ export default function CardEnrollment() {
   }
   return <section className="card">
     <h3>Encrypted card enrollment</h3>
-    <p>{demoMode ? 'Encryption is available in connected mode after deploying the card function.' : 'For software testing, enter a sample hexadecimal UID. Use the NFC reader after hardware integration.'}</p>
+    <p>{demoMode ? 'Sign in to the local server to test encrypted card enrollment.' : 'For software testing, enter a sample hexadecimal UID. The RFID reader will provide this after hardware integration.'}</p>
     <form onSubmit={submitCard}>
       <label htmlFor="card-student">Student<select id="card-student" value={student?.id || ''} onChange={(event) => setSelected(event.target.value)} disabled={busy}>
         {!students.length && <option value="">Register a student first</option>}

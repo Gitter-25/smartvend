@@ -24,7 +24,7 @@ Open the Vite URL (normally http://localhost:5173) and sign in with the administ
 
 For a single-server demonstration, run `npm run build`, then `npm start`, and open http://localhost:3001.
 
-See [local setup](docs/SETUP.md), [database design](docs/DATABASE.md), [QR sandbox payments](docs/QR_PAYMENTS.md), [device protocol](docs/DEVICE.md), and [hardware/Shopee shortlist](docs/HARDWARE.md).
+See [local setup](docs/SETUP.md), [database design](docs/DATABASE.md), [QR sandbox payments](docs/QR_PAYMENTS.md), [device protocol](docs/DEVICE.md), [hardware/Shopee shortlist](docs/HARDWARE.md), and [software presentation walkthrough](docs/PRESENTATION.md).
 
 ## What is retained
 

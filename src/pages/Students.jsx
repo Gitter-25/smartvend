@@ -55,7 +55,7 @@ export default function Students() {
       <WalletTopup />
     </div>
     <CardEnrollment />
-    <section className="card"><h3>Registered students</h3><div className="table-wrap"><table>
+    <section className="card"><div className="section-heading"><h3>Registered students</h3><StatusBadge>{`${students.length} students`}</StatusBadge></div>{!students.length && <div className="empty-state"><h4>No students registered</h4><p>Register a fictional student above to begin the classroom demonstration.</p></div>}<div className="table-wrap"><table>
       <thead><tr><th>Name</th><th>Student number</th><th>Balance</th><th>Card status</th><th>Action</th></tr></thead>
       <tbody>{students.map((item) => <tr key={item.id}><td>{item.name}</td><td>{item.number}</td><td>{pesos(item.balance)}</td><td><StatusBadge>{!demoMode && !item.cardId ? 'Not enrolled' : item.active ? 'Active' : 'Disabled'}</StatusBadge></td><td><Button className="secondary" disabled={busy || (!demoMode && !item.cardId)} onClick={() => toggleCard(item)}>{item.active ? 'Disable' : 'Enable'} card for {item.name}</Button></td></tr>)}</tbody>
     </table></div></section>

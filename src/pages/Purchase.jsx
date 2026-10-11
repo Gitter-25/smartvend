@@ -39,7 +39,7 @@ export default function Purchase() {
     finally { setBusy(false); }
   }
   return <><PageHeading title="Purchase test" description="Software simulation only. No physical item is dispensed." />
-    <section className="card"><form onSubmit={submitPurchase}>
+    <section className="card narrow-card"><h3>Test a student card purchase</h3><p>Use an enrolled test UID. The server checks the card, wallet balance, and stock before recording a simulated purchase.</p><form onSubmit={submitPurchase}>
       <label htmlFor="purchase-student">Student<select id="purchase-student" value={student?.id || ''} disabled={busy} onChange={(event) => setStudentId(event.target.value)}>
         {!students.length && <option value="">Register a student first</option>}
         {students.map((row) => <option key={row.id} value={row.id}>{row.name} · {row.number}</option>)}
@@ -47,7 +47,7 @@ export default function Purchase() {
       <label htmlFor="purchase-slot">Slot<select id="purchase-slot" value={slot} disabled={busy} onChange={(event) => setSlot(Number(event.target.value))}>
         {products.map((row) => <option key={row.id} value={row.id}>Slot {row.id}: {row.name} · {pesos(row.price)} · Stock {row.stock}</option>)}
       </select></label>
-      <Input label="Enrolled card UID" id="purchase-uid" name="uid" required maxLength={80} autoComplete="off" disabled={busy || demoMode} />
+      <Input label="Enrolled card UID" id="purchase-uid" name="uid" placeholder="Enter the student's enrolled test UID" required maxLength={80} autoComplete="off" disabled={busy || demoMode} />
       <Button type="submit" disabled={busy || demoMode || !student}>{busy ? 'Processing…' : 'Simulate purchase'}</Button>
     </form><PendingRecovery store={store} /><p role="status">{message}</p>{demoMode && <p>Start the local server to test encrypted purchases.</p>}</section></>;
 }
