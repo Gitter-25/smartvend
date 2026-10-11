@@ -1,0 +1,20 @@
+# Dependencies, build output, and runtime data
+node_modules/
+dist/
+/data/
+/backups/
+coverage/
+package-lock.json
+
+# Private configuration and local editor files
+.env
+.env.*
+.device.env
+.secrets.*
+.vscode/
+supabase/
+
+# Archived backend and prose documentation are outside the code-formatting scope
+legacy/
+README.md
+docs/

@@ -5,7 +5,11 @@ import { pendingStore, cardFingerprint } from '../src/lib/pending-request.js';
 // Recreating the store models a reload and must retain the original request ID.
 test('pending request survives reload, is account scoped and clears on completion', () => {
   const values = new Map();
-  const storage = { getItem: (key) => values.get(key), setItem: (key, value) => values.set(key, value), removeItem: (key) => values.delete(key) };
+  const storage = {
+    getItem: (key) => values.get(key),
+    setItem: (key, value) => values.set(key, value),
+    removeItem: (key) => values.delete(key),
+  };
   const pending = { student: 'test', amount: 100, request_id: crypto.randomUUID() };
   pendingStore('admin-a:topup', storage).save(pending);
   assert.deepEqual(pendingStore('admin-a:topup', storage).read(), pending);

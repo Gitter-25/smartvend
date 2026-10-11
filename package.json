@@ -11,7 +11,9 @@
     "server": "node --env-file-if-exists=.env.server server/index.js",
     "start": "node --env-file-if-exists=.env.server server/index.js",
     "setup": "node scripts/setup-local.js",
-    "backup": "node --env-file-if-exists=.env.server scripts/backup-local.js"
+    "backup": "node --env-file-if-exists=.env.server scripts/backup-local.js",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "express": "^5.2.1",
@@ -24,6 +26,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^6.0.0",
+    "prettier": "3.9.10",
     "vite": "^8.0.0"
   },
   "engines": {

@@ -8,24 +8,56 @@ export function AuthProvider({ children }) {
   const [ready, setReady] = useState(demoMode);
   const [error, setError] = useState('');
   useEffect(() => {
-    if (demoMode) return;
+    if (demoMode) {
+      return;
+    }
     let active = true;
-    api('/session').then((data) => { if (active) setSession(data.session); })
-      .catch((failure) => { if (active) setError(failure.message); })
-      .finally(() => { if (active) setReady(true); });
-    return () => { active = false; };
+    api('/session')
+      .then((data) => {
+        if (active) {
+          setSession(data.session);
+        }
+      })
+      .catch((failure) => {
+        if (active) {
+          setError(failure.message);
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setReady(true);
+        }
+      });
+    return () => {
+      active = false;
+    };
   }, []);
   // Authenticate against the local administrator's salted password hash.
   async function signIn(credentials) {
     const data = await api('/login', credentials);
-    setSession({ user: data.user }); setError(''); setReady(true);
+    setSession({ user: data.user });
+    setError('');
+    setReady(true);
   }
   // Revoke the saved server session before clearing the client state.
   async function signOut() {
-    try { await api('/logout', {}); setSession(null); setError(''); }
-    catch (failure) { setError(failure.message); }
+    try {
+      await api('/logout', {});
+      setSession(null);
+      setError('');
+    } catch (failure) {
+      setError(failure.message);
+    }
   }
-  return <AuthContext.Provider value={{ session, ready, admin: !!session, error, demoMode, signIn, signOut }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{ session, ready, admin: !!session, error, demoMode, signIn, signOut }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }
 // Read authentication state from a component.
-export function useAuth() { return useContext(AuthContext); }
+export function useAuth() {
+  return useContext(AuthContext);
+}

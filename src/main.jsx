@@ -7,5 +7,13 @@ import { DataProvider } from './data/AppData';
 import './styles.css';
 
 createRoot(document.getElementById('root')).render(
-  <React.StrictMode><BrowserRouter><AuthProvider><DataProvider><App /></DataProvider></AuthProvider></BrowserRouter></React.StrictMode>,
+  <React.StrictMode>
+    <BrowserRouter>
+      <AuthProvider>
+        <DataProvider>
+          <App />
+        </DataProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  </React.StrictMode>,
 );

@@ -47,11 +47,14 @@ Runtime data is stored in `data/smartvend.sqlite`. Backend configuration is in `
 
 ## Checks and limits
 
+See [coding standards](docs/CODING_STANDARDS.md) for indentation, line length, and formatting commands.
+
 ```sh
+npm run format:check
 npm test
 npm run build
 ```
 
-Tests include real Express HTTP requests, SQLite persistence/rollback, authentication, encrypted cards, money/stock retries, QR settlement, and signed webhook verification with synthetic provider responses. GitHub Actions runs tests and the production build on Node 24.
+Tests include real Express HTTP requests, SQLite persistence/rollback, authentication, encrypted cards, money/stock retries, QR settlement, and signed webhook verification with synthetic provider responses. GitHub Actions checks formatting, runs tests, and builds the production app on Node 24.
 
 Actual PayMongo account configuration, public HTTPS/webhook delivery, ESP32 firmware, mechanical assembly, and sensor testing remain to be completed. The local computer must stay running for vending. RFID can operate on a reachable local backend without external payments; PayMongo testing requires internet access.

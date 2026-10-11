@@ -12,38 +12,75 @@ function fixture({ authorized = true, member = true } = {}) {
     // Capture purchase calls after real authentication and decryption checks.
     async rpc(name, input) {
       purchases.push({ name, input });
-      if (!records[0]?.active) return { error: { message: 'Card is disabled' } };
+      if (!records[0]?.active) {
+        return { error: { message: 'Card is disabled' } };
+      }
       return { data: { transactionId: input.request_id, amount: 25, status: 'Completed' } };
     },
-    auth: { getUser: async () => ({ data: { user: authorized ? { id: studentId } : null }, error: null }) },
+    auth: {
+      getUser: async () => ({ data: { user: authorized ? { id: studentId } : null }, error: null }),
+    },
     // Support the small query chain used by the backend handler.
     from(table) {
       let inserted;
       let filter;
       return {
-        select() { return this; },
-        eq(_column, value) { filter = value; return this; },
-        insert(value) { inserted = value; return this; },
+        select() {
+          return this;
+        },
+        eq(_column, value) {
+          filter = value;
+          return this;
+        },
+        insert(value) {
+          inserted = value;
+          return this;
+        },
         // Enforce the real schema's unique student/card relationships in the fake boundary.
         async single() {
-          if (records.some((row) => row.student_id === inserted.student_id || row.identifier_lookup === inserted.identifier_lookup)) return { error: { code: '23505' } };
+          if (
+            records.some(
+              (row) =>
+                row.student_id === inserted.student_id ||
+                row.identifier_lookup === inserted.identifier_lookup,
+            )
+          ) {
+            return { error: { code: '23505' } };
+          }
           const row = { ...inserted, id: 'card-1', active: true };
-          records.push(row); return { data: { id: row.id }, error: null };
+          records.push(row);
+          return { data: { id: row.id }, error: null };
         },
         // Return membership or the requested encrypted record.
         async maybeSingle() {
-          return { data: table === 'admins' ? (member ? { user_id: studentId } : null) : records.find((row) => row.identifier_lookup === filter) ?? null, error: null };
+          return {
+            data:
+              table === 'admins'
+                ? member
+                  ? { user_id: studentId }
+                  : null
+                : (records.find((row) => row.identifier_lookup === filter) ?? null),
+            error: null,
+          };
         },
       };
     },
   };
-  const handle = createCardHandler({ db, encryptionKey: '11'.repeat(32), lookupKey: '22'.repeat(32) });
+  const handle = createCardHandler({
+    db,
+    encryptionKey: '11'.repeat(32),
+    lookupKey: '22'.repeat(32),
+  });
   return { handle, records, purchases };
 }
 
 // Build a request with a dummy token; the injected Auth boundary decides validity.
 function request(action, token = 'Bearer test-session', extra = {}) {
-  return new Request('http://localhost/cards', { method: 'POST', headers: token ? { Authorization: token } : {}, body: JSON.stringify({ action, studentId, uid, ...extra }) });
+  return new Request('http://localhost/cards', {
+    method: 'POST',
+    headers: token ? { Authorization: token } : {},
+    body: JSON.stringify({ action, studentId, uid, ...extra }),
+  });
 }
 
 // Unauthenticated and ordinary users must never reach enrollment.
@@ -67,15 +104,30 @@ test('enrolls, verifies, rejects duplicates, and never returns plaintext', async
   const verification = await handle(request('verify'));
   assert.deepEqual(await verification.json(), { matches: true, active: true });
   records[0].active = false;
-  assert.deepEqual(await (await handle(request('verify'))).json(), { matches: true, active: false });
-  assert.equal((await handle(request('verify', 'Bearer test-session', { studentId: '00000000-0000-0000-0000-000000000002' }))).status, 404);
+  assert.deepEqual(await (await handle(request('verify'))).json(), {
+    matches: true,
+    active: false,
+  });
+  assert.equal(
+    (
+      await handle(
+        request('verify', 'Bearer test-session', {
+          studentId: '00000000-0000-0000-0000-000000000002',
+        }),
+      )
+    ).status,
+    404,
+  );
 });
 
 // Input validation and ciphertext authentication must fail with bounded responses.
 test('rejects malformed input and corrupted ciphertext', async () => {
   const { handle, records } = fixture();
   assert.equal((await handle(request('unknown'))).status, 400);
-  assert.equal((await handle(request('enroll', 'Bearer test-session', { uid: 'garbage' }))).status, 400);
+  assert.equal(
+    (await handle(request('enroll', 'Bearer test-session', { uid: 'garbage' }))).status,
+    400,
+  );
   await handle(request('enroll'));
   records[0].identifier_ciphertext += '00';
   const result = await handle(request('verify'));
@@ -84,20 +136,42 @@ test('rejects malformed input and corrupted ciphertext', async () => {
 });
 
 // Card verification must finish before the backend-only payment function is called.
-test('purchase checks the card and passes only trusted identities to the payment function', async () => {
-  const { handle, records, purchases } = fixture();
-  const input = { slot: 2, requestId: '00000000-0000-0000-0000-000000000009', actor: 'forged', amount: 1 };
-  assert.equal((await handle(request('purchase', 'Bearer test-session', input))).status, 404);
-  assert.equal(purchases.length, 0);
-  await handle(request('enroll'));
-  assert.equal((await handle(request('purchase', 'Bearer test-session', { ...input, slot: 3 }))).status, 400);
-  assert.equal((await handle(request('purchase', 'Bearer test-session', { ...input, uid: '11223344' }))).status, 404);
-  assert.equal(purchases.length, 0);
-  const response = await handle(request('purchase', 'Bearer test-session', input));
-  assert.deepEqual(await response.json(), { transactionId: input.requestId, amount: 25, status: 'Completed' });
-  assert.deepEqual(purchases[0], { name: 'simulate_purchase', input: { card: 'card-1', slot: 2, request_id: input.requestId, actor: studentId } });
-  records[0].active = false;
-  const disabled = await handle(request('purchase', 'Bearer test-session', input));
-  assert.equal(disabled.status, 409);
-  assert.deepEqual(await disabled.json(), { error: 'Card is disabled' });
-});
+test(
+  'purchase checks the card and passes only trusted identities ' + 'to the payment function',
+  async () => {
+    const { handle, records, purchases } = fixture();
+    const input = {
+      slot: 2,
+      requestId: '00000000-0000-0000-0000-000000000009',
+      actor: 'forged',
+      amount: 1,
+    };
+    assert.equal((await handle(request('purchase', 'Bearer test-session', input))).status, 404);
+    assert.equal(purchases.length, 0);
+    await handle(request('enroll'));
+    assert.equal(
+      (await handle(request('purchase', 'Bearer test-session', { ...input, slot: 3 }))).status,
+      400,
+    );
+    assert.equal(
+      (await handle(request('purchase', 'Bearer test-session', { ...input, uid: '11223344' })))
+        .status,
+      404,
+    );
+    assert.equal(purchases.length, 0);
+    const response = await handle(request('purchase', 'Bearer test-session', input));
+    assert.deepEqual(await response.json(), {
+      transactionId: input.requestId,
+      amount: 25,
+      status: 'Completed',
+    });
+    assert.deepEqual(purchases[0], {
+      name: 'simulate_purchase',
+      input: { card: 'card-1', slot: 2, request_id: input.requestId, actor: studentId },
+    });
+    records[0].active = false;
+    const disabled = await handle(request('purchase', 'Bearer test-session', input));
+    assert.equal(disabled.status, 409);
+    assert.deepEqual(await disabled.json(), { error: 'Card is disabled' });
+  },
+);

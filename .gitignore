@@ -10,8 +10,8 @@ supabase/.temp/
 .device.env
 
 # Local runtime data and private backups
-data/
-backups/
+/data/
+/backups/
 *.sqlite
 *.sqlite-*
 *.db

@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cardLookup, decryptCard, encryptCard, normalizeCard } from '../server/shared/card-crypto.js';
+import {
+  cardLookup,
+  decryptCard,
+  encryptCard,
+  normalizeCard,
+} from '../server/shared/card-crypto.js';
 const encryptionKey = '11'.repeat(32);
 const lookupKey = '22'.repeat(32);
 const uid = '04A1B2C3D4E5F6';
@@ -34,6 +39,9 @@ test('rejects tampering, wrong keys, and swapped student records', async () => {
 
 // HMAC permits lookup without storing plaintext or an unkeyed UID hash.
 test('lookup is consistent across formatting and depends on its secret key', async () => {
-  assert.equal(await cardLookup(uid, lookupKey), await cardLookup('04:A1:B2:C3:D4:E5:F6', lookupKey));
+  assert.equal(
+    await cardLookup(uid, lookupKey),
+    await cardLookup('04:A1:B2:C3:D4:E5:F6', lookupKey),
+  );
   assert.notEqual(await cardLookup(uid, lookupKey), await cardLookup(uid, encryptionKey));
 });
