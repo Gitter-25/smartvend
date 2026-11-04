@@ -5,7 +5,6 @@ dist/
 !.env.example
 .secrets.env
 .secrets.*
-supabase/.temp/
 
 .device.env
 
@@ -17,6 +16,3 @@ supabase/.temp/
 *.db
 *.db-*
 .vscode/
-
-# Leftover local Deno settings from the previous backend
-/supabase/

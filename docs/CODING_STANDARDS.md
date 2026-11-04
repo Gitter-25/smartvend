@@ -1,8 +1,7 @@
 # SmartVend coding standards
 
 Use these rules for the active React frontend, Express backend, scripts, tests,
-and project configuration. The archived Supabase implementation in `legacy/`
-is retained as historical reference and is excluded from formatting.
+and project configuration. Prose documentation is excluded from formatting.
 
 ## Indentation and line length
 

@@ -39,7 +39,7 @@ See [local setup](docs/SETUP.md), [database design](docs/DATABASE.md), [QR sandb
 
 Your cloud project is not deleted or modified. Existing students, balances, cards, receipts, credentials, and in-flight jobs are **not automatically imported**. The local setup starts a new database and creates a new admin; use fictional data for the new test run. Finish or reconcile old vending/payment jobs before changing a physical device's endpoint. Preserve the old project and original encryption keys if you need to transfer its records later.
 
-The old code, SQL migrations, and instructions are preserved under `legacy/` for reference. Do not run them for the new local version. Previous untracked Deno editor files can remain locally; they are unused.
+The old Supabase code and migrations were removed from this repository; they remain available in the Git history. Previous untracked Deno editor files can remain locally; they are unused.
 
 ## Private files and backups
 

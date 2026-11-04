@@ -12,9 +12,7 @@ package-lock.json
 .device.env
 .secrets.*
 .vscode/
-supabase/
 
-# Archived backend and prose documentation are outside the code-formatting scope
-legacy/
+# Prose documentation is outside the code-formatting scope
 README.md
 docs/
