@@ -4,6 +4,7 @@ dist/
 /data/
 /backups/
 coverage/
+/supabase/.temp/
 package-lock.json
 
 # Private configuration and local editor files

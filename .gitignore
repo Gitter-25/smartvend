@@ -1,16 +1,17 @@
 node_modules/
 dist/
+coverage/
 .env
 .env.*
 !.env.example
 .secrets.env
 .secrets.*
-
 .device.env
 
-# Local runtime data and private backups
+# Local runtime data, private backups, and Supabase CLI cache
 /data/
 /backups/
+/supabase/.temp/
 *.sqlite
 *.sqlite-*
 *.db
