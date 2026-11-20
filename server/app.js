@@ -244,12 +244,19 @@ export function createApp({ store, config, fetchImpl }) {
 
   // Kiosk endpoints are deliberately separate from the authenticated admin API.
   // This is a single-machine, sandbox-only interface. Never expose the device token.
-  const kioskLimit = rateLimit({
+  const kioskCheckoutLimit = rateLimit({
     windowMs: 60 * 1000,
     limit: 12,
     standardHeaders: 'draft-8',
     legacyHeaders: false,
     message: { error: 'Too many checkout requests. Please wait.' },
+  });
+  const kioskStatusLimit = rateLimit({
+    windowMs: 60 * 1000,
+    limit: 60,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    message: { error: 'Too many status checks. Please wait.' },
   });
   app.get('/api/kiosk/products', (_req, res) => {
     const busy = !!store.get(
@@ -283,7 +290,7 @@ export function createApp({ store, config, fetchImpl }) {
     );
     return { status: response.status, body: await response.json() };
   }
-  app.post('/api/kiosk/checkout', kioskLimit, async (req, res) => {
+  app.post('/api/kiosk/checkout', kioskCheckoutLimit, async (req, res) => {
     if (!config.paymongoSecret?.startsWith('sk_test_')) {
       return res.status(503).json({ error: 'Sandbox QR payments are not configured.' });
     }
@@ -305,7 +312,7 @@ export function createApp({ store, config, fetchImpl }) {
         : result.body,
     );
   });
-  app.get('/api/kiosk/checkout/:id', kioskLimit, async (req, res) => {
+  app.get('/api/kiosk/checkout/:id', kioskStatusLimit, async (req, res) => {
     if (!/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(req.params.id)) {
       return res.status(404).json({ error: 'Checkout not found.' });
     }
