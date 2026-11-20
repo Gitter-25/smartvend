@@ -1294,3 +1294,191 @@ tbody tr:hover {
   width: 100%;
   max-width: 450px;
 }
+
+/* Customer kiosk: independent full-screen, touch-friendly visual system. */
+body:has(.kiosk) {
+  background: #f3f6fc;
+}
+.kiosk {
+  min-height: 100vh;
+  color: #152844;
+  font-family: Inter, 'Segoe UI', Arial, sans-serif;
+}
+.kiosk-header {
+  background: #132844;
+  color: #fff;
+  padding: 22px clamp(20px, 5vw, 70px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.kiosk-header strong {
+  display: block;
+  font-size: 28px;
+  letter-spacing: -1px;
+}
+.kiosk-header span {
+  font-size: 11px;
+  letter-spacing: 1.2px;
+}
+.kiosk-header div span {
+  display: block;
+  color: #b7c7e0;
+  margin-top: 3px;
+}
+.kiosk-test {
+  color: #bde9da;
+  text-align: right;
+}
+.kiosk-main {
+  max-width: 1080px;
+  margin: auto;
+  padding: clamp(26px, 5vw, 60px) 20px;
+}
+.kiosk-intro {
+  text-align: center;
+  margin-bottom: 40px;
+}
+.kiosk-eyebrow {
+  color: #2a62c3;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+.kiosk h1 {
+  font-size: clamp(34px, 5vw, 56px);
+  letter-spacing: -1.8px;
+  margin: 10px 0;
+}
+.kiosk-intro > p:last-child {
+  font-size: 17px;
+}
+.kiosk-products {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.kiosk-product {
+  background: white;
+  border: 1px solid #e1e7f0;
+  border-radius: 22px;
+  padding: 30px;
+  box-shadow: 0 12px 32px #12294a0a;
+}
+.kiosk-product-art {
+  height: 150px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, #eaf1ff, #d6e5fc);
+  border-radius: 16px;
+  font-size: 55px;
+  font-weight: 800;
+  color: #7898ce;
+  margin-bottom: 26px;
+}
+.kiosk-product h2 {
+  font-size: 26px;
+  margin: 10px 0;
+}
+.kiosk-product > strong {
+  display: block;
+  font-size: 30px;
+  margin: 15px 0 24px;
+}
+.kiosk-primary {
+  width: 100%;
+  min-height: 64px;
+  border-radius: 14px;
+  font-size: 18px;
+  background: #245ad5;
+}
+.kiosk-order {
+  max-width: 600px;
+  margin: 0 auto;
+  text-align: center;
+  background: white;
+  padding: clamp(22px, 5vw, 48px);
+  border: 1px solid #e1e7f0;
+  border-radius: 22px;
+}
+.kiosk-price {
+  font-size: 34px;
+  font-weight: 800;
+  color: #245ad5;
+  margin: 10px 0;
+}
+.kiosk-message {
+  font-size: 18px;
+  color: #425571;
+}
+.kiosk-qr {
+  display: grid;
+  place-items: center;
+  min-height: 310px;
+  background: #f5f8fe;
+  border-radius: 16px;
+  padding: 18px;
+  margin: 22px auto;
+}
+.kiosk-qr img {
+  width: 290px;
+  max-width: 100%;
+  background: white;
+  border-radius: 12px;
+}
+.kiosk-reference {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  color: #6b7d96;
+}
+.kiosk-warning {
+  text-align: center;
+  padding: 18px;
+  background: #fff4d8;
+  color: #765514;
+  border-radius: 12px;
+  margin: 24px auto;
+  max-width: 660px;
+}
+.kiosk-error {
+  color: #aa3333;
+  background: #ffe9e9;
+  border-radius: 12px;
+  padding: 18px;
+  text-align: center;
+}
+.kiosk-spinner {
+  width: 65px;
+  height: 65px;
+  border: 6px solid #dce6f8;
+  border-top-color: #245ad5;
+  border-radius: 50%;
+  animation: kiosk-spin 1s linear infinite;
+  margin: 32px auto;
+}
+@keyframes kiosk-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.kiosk-footer {
+  text-align: center;
+  padding: 22px;
+  font-size: 12px;
+  color: #6b7d96;
+}
+@media (max-width: 650px) {
+  .kiosk-header {
+    padding: 18px;
+  }
+  .kiosk-test {
+    font-size: 9px !important;
+  }
+  .kiosk-products {
+    grid-template-columns: 1fr;
+  }
+  .kiosk-product-art {
+    height: 110px;
+  }
+}

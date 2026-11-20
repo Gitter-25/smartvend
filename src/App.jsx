@@ -9,12 +9,14 @@ import Transactions from './pages/Transactions';
 import Purchase from './pages/Purchase';
 import Machine from './pages/Machine';
 import QR from './pages/QR';
+import Kiosk from './pages/Kiosk';
 
 // Connect each URL to its page. Protected routes require an authenticated admin.
 export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/kiosk" element={<Kiosk />} />
       <Route
         element={
           <ProtectedRoute>
