@@ -9,7 +9,7 @@ Status date: 20 November 2026. This is the proposed implementation and defense p
 | 3. Customer kiosk and QR | Public touchscreen, two products, PayMongo test checkout, verified order status | Implemented; end-to-end validation pending | Sandbox checkout and recovery pass without admin access |
 | 4. Software-only vending simulator | Explicit simulated ESP32 heartbeat/start/finish, failure injection, repeat protection | Next | Repeatable successful/failed/uncertain vending test scenarios without motors |
 | 5. UX and reliability | Touch sizing, kiosk recovery, accessible states, error handling, security review | Planned | Usability walkthrough and resilience checklist pass |
-| 6. Hardware selection and assembly | Confirm products, enclosure, screen, electronics, power and mechanics | Planned, no parts purchased | Approved BOM, wiring diagram, safe bench tests |
+| 6. Hardware selection and assembly | Confirm products, enclosure, electronics, power and mechanics | Planned, no parts purchased | Approved BOM, wiring diagram, safe bench tests |
 | 7. ESP32 firmware integration | RFID, buttons, display/interface, HTTPS API, nonvolatile job state, servo/sensors | Planned | Real device tests with one-item release and verified sensor outcomes |
 | 8. Final acceptance and defense | Integrated scenarios, logs, backup, report and demo | Planned | All acceptance criteria documented and signed off |
 
@@ -18,7 +18,7 @@ Status date: 20 November 2026. This is the proposed implementation and defense p
 1. Finish sandbox payment and admin acceptance tests.
 2. Build a **clearly labelled software simulator** for ESP32 device requests. A simulated finish is not proof that an item was dispensed.
 3. Exercise success, failed/uncertain dispensing, retry, restart, duplicate request, stock and refund paths. Use fictional students and sandbox payment records.
-4. Decide whether the kiosk is a **laptop/tablet browser** or an **ESP32-attached small TFT**. The current React kiosk requires a browser-capable screen/computer; a 2.8-inch ILI9341 TFT cannot render the React site directly. For a standalone ESP32 TFT, write a separate embedded UI.
+4. The kiosk is fixed as a **laptop or website browser** using the existing React interface. No touchscreen, LCD/TFT or separate ESP32 display UI is required.
 5. Record the actual two products, dimensions, mass, package rigidity, desired stock capacity, enclosure dimensions, screen choice and budget.
 6. Finalize the mechanical and electrical design before buying parts.
 7. Integrate firmware one peripheral at a time, then test real physical dispense outcomes.

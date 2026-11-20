@@ -2,18 +2,15 @@
 
 **Status:** Planning guide for a classroom prototype; no physical hardware has been purchased or validated. This is not a final pin-by-pin wiring diagram. Read [HARDWARE.md](HARDWARE.md), [DEVICE.md](DEVICE.md), and [PROJECT_PHASES.md](PROJECT_PHASES.md) first.
 
-## 0. Choose the display architecture before buying parts
+## 0. Fixed customer interface: laptop / website
 
-The current `/kiosk` is a **React web page** and needs a browser-capable device (laptop, mini PC, or tablet) connected to the Express server. An ESP32-S3 **cannot run that React browser interface directly** on a small ILI9341 TFT. Two workable options:
+The customer kiosk is the existing React web page at `/kiosk`, opened in a laptop browser or website. **Do not purchase or wire any touchscreen, TFT, LCD, OLED, or other display for the ESP32-S3.** The ESP32-S3 handles RFID, dispensing motors, sensors, and communication with the Express backend. The laptop/website handles product selection, PayMongo QR checkout, and order status.
 
-- **Recommended for the current software:** mount a browser-capable touchscreen (plus a suitable host computer) in the cabinet. Use the ESP32-S3 separately for RFID, buttons, motors and sensors.
-- **Alternative embedded screen:** connect the proposed 2.8-inch ILI9341 TFT to the ESP32-S3 and develop separate embedded display firmware for product selection, QR and status. This requires a new UI implementation and QR readability testing.
-
-Decide which option the defense prototype will use. Do not assume a TFT replaces the browser without extra firmware.
+The browser kiosk and hardware controller must share the same backend order UUID. Before physical integration, implement a secure mechanism for the ESP32 to discover the authorized order without exposing the device token to the browser.
 
 ## 1. Freeze the design and verify the parts
 
-Before purchase, record the **exact** ESP32-S3 development board revision/pinout, PN532 breakout and supported logic voltage, display choice, two product types and packaging, mass, slot capacity, cabinet dimensions, servo/gear-motor choice, power requirements, and total budget.
+Before purchase, record the **exact** ESP32-S3 development board revision/pinout, PN532 breakout and supported logic voltage, laptop/browser hosting, two product types and packaging, mass, slot capacity, cabinet dimensions, servo/gear-motor choice, power requirements, and total budget.
 
 The existing [hardware shortlist](HARDWARE.md) proposes:
 
@@ -29,7 +26,7 @@ The existing [hardware shortlist](HARDWARE.md) proposes:
 | Regulated enclosed 5 V supply | 1, rating to validate | Motor power |
 | Breadboard and jumper wires | 1 set | Low-current bench prototyping only |
 | Mechanical brackets, fasteners, enclosure, wiring and protection | To design | Safe permanent assembly |
-| Browser touchscreen + host **or** ILI9341 TFT | Choose one approach | Customer interaction |
+| Existing laptop and browser | Already available | Customer interface at /kiosk; no additional display hardware |
 
 **Do not purchase the servo option for spiral snacks without a mechanism review.** Spiral vending may require a different motor, driver, power rail, coupler and sensor arrangement. The proposed 5 V 5 A supply is only a candidate; calculate peak and stall current first.
 
@@ -62,14 +59,16 @@ The existing [hardware shortlist](HARDWARE.md) proposes:
 
 **Gate:** Reader detects the selected test cards consistently. Wallet balances remain in SQLite, never on the card.
 
-## 5. Add selection buttons and screen
+## 5. Test the laptop / website customer kiosk
 
-1. For physical buttons, connect one normally-open dry contact per slot to an appropriate GPIO and ground; configure a 3.3 V pull-up and debounce in firmware.
-2. If using a browser kiosk, install and secure the browser-capable touchscreen and host, open `/kiosk`, and test touch targets, scrolling, QR scanning and recovery after refresh.
-3. If using an ILI9341 TFT, verify the actual breakout voltage and SPI pinout before wiring. Implement a **separate embedded screen UI** for product, price, QR and status.
-4. Confirm the QR is scannable on several phones in typical lighting; preserve a quiet zone around the code.
+1. Run Express and the React frontend on the laptop, or deploy the browser interface with appropriate network security.
+2. Open `/kiosk`, select a product, and confirm price and available stock.
+3. Generate a PayMongo **sandbox** checkout QR code and scan it with a phone.
+4. Verify the page displays payment status and remains usable after a refresh.
+5. Keep admin login and private credentials separate from the public kiosk.
+6. If using physical selection buttons for RFID purchases, wire only the two dry-contact buttons to verified ESP32 GPIOs with 3.3 V pull-ups and debounce. Buttons are not required for QR product selection on the website.
 
-**Gate:** Slot selection is unambiguous and a test checkout QR is scannable. Do not enable motors yet.
+**Gate:** Browser selection and sandbox QR flow work. No display module is attached to the ESP32.
 
 ## 6. Prototype ONE dispensing slot without products
 
@@ -111,7 +110,7 @@ The existing [hardware shortlist](HARDWARE.md) proposes:
 3. Separate logic and actuator power branches; keep the required common reference for control signals.
 4. Replace loose prototype connections with mechanically secure insulated connectors or a suitable PCB.
 5. Add strain relief, accessible low-voltage power disconnect, guarded moving parts and cable routing away from moving components.
-6. Mount the ESP32, RFID antenna, display, buttons, sensors, two mechanisms and collection chute.
+6. Mount the ESP32, RFID antenna, buttons, sensors, two mechanisms and collection chute.
 7. Verify polarity, continuity, shorts, clearances and supply voltage with motors disconnected before first full power-up.
 
 **Gate:** Inspection passes; no exposed hazardous conductors or moving pinch points accessible to customers.
@@ -136,7 +135,7 @@ Follow [DEVICE.md](DEVICE.md) as the **authoritative API contract**:
 Record date, firmware revision, slot, test case, expected result, observed result, sensor data and transaction ID for each test.
 
 - [ ] Card enrollment and reader stability
-- [ ] Both product buttons and QR readability
+- [ ] Browser product selection and QR readability
 - [ ] Normal RFID wallet purchase
 - [ ] Verified PayMongo **sandbox** QR purchase
 - [ ] Exactly one item released per authorization
@@ -158,7 +157,6 @@ Keep a labelled wiring diagram, finalized BOM, cabinet photos, firmware version,
 ## Open decisions before final wiring
 
 - Exact ESP32-S3 board revision and available GPIOs
-- Browser touchscreen + host **versus** standalone embedded TFT UI
 - Exact products, dimensions, weight and slot capacity
 - Servo escapement **versus** spiral vending motor
 - Power supply rating, protection and enclosure
