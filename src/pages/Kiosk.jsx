@@ -3,19 +3,22 @@ import QRCode from 'qrcode';
 
 const pendingKey = 'smartvend-kiosk-pending';
 const terminalStates = ['Completed', 'Cancelled', 'Refunded'];
-const money = (amount) => new Intl.NumberFormat('en-PH', {
-  style: 'currency',
-  currency: 'PHP',
-}).format(amount ?? 0);
+const money = (amount) =>
+  new Intl.NumberFormat('en-PH', {
+    style: 'currency',
+    currency: 'PHP',
+  }).format(amount ?? 0);
 
 async function request(path, body) {
   const response = await fetch(`/api/kiosk/${path}`, {
     cache: 'no-store',
-    ...(body ? {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    } : {}),
+    ...(body
+      ? {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        }
+      : {}),
   });
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || 'Unable to connect to SmartVend.');
@@ -75,10 +78,16 @@ export default function Kiosk() {
     setQr('');
     if (order?.checkoutUrl && order.state === 'AwaitingPayment') {
       QRCode.toDataURL(order.checkoutUrl, { width: 340, margin: 2 })
-        .then((value) => { if (active) setQr(value); })
-        .catch(() => { if (active) setError('Unable to display payment QR.'); });
+        .then((value) => {
+          if (active) setQr(value);
+        })
+        .catch(() => {
+          if (active) setError('Unable to display payment QR.');
+        });
     }
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [order?.checkoutUrl, order?.state]);
 
   async function checkout(slot) {
@@ -118,7 +127,10 @@ export default function Kiosk() {
   return (
     <div className="kiosk">
       <header className="kiosk-header">
-        <div><strong>SmartVend</strong><span>SELF-SERVICE VENDING</span></div>
+        <div>
+          <strong>SmartVend</strong>
+          <span>SELF-SERVICE VENDING</span>
+        </div>
         <span className="kiosk-test">PAYMONGO SANDBOX · NO REAL MONEY</span>
       </header>
       <main className="kiosk-main">
@@ -130,7 +142,11 @@ export default function Kiosk() {
             <p className="kiosk-message">{messages[order.state] || 'Checking purchase status…'}</p>
             {order.state === 'AwaitingPayment' && (
               <div className="kiosk-qr">
-                {qr ? <img src={qr} alt="Scan to pay through PayMongo test checkout" /> : 'Preparing QR code…'}
+                {qr ? (
+                  <img src={qr} alt="Scan to pay through PayMongo test checkout" />
+                ) : (
+                  'Preparing QR code…'
+                )}
               </div>
             )}
             {['Authorized', 'Dispensing'].includes(order.state) && (
@@ -138,10 +154,15 @@ export default function Kiosk() {
             )}
             <p className="kiosk-reference">Reference: {order.requestId}</p>
             {terminalStates.includes(order.state) && (
-              <button className="kiosk-primary" onClick={reset}>Back to products</button>
+              <button className="kiosk-primary" onClick={reset}>
+                Back to products
+              </button>
             )}
             {!terminalStates.includes(order.state) && (
-              <p className="kiosk-warning">Do not start another purchase until this order is resolved. Ask an attendant if it remains pending.</p>
+              <p className="kiosk-warning">
+                Do not start another purchase until this order is resolved. Ask an attendant if it
+                remains pending.
+              </p>
             )}
           </section>
         ) : (
@@ -154,7 +175,9 @@ export default function Kiosk() {
             <div className="kiosk-products">
               {catalog?.products?.map((product) => (
                 <article className="kiosk-product" key={product.id}>
-                  <div className="kiosk-product-art" aria-hidden="true">0{product.id}</div>
+                  <div className="kiosk-product-art" aria-hidden="true">
+                    0{product.id}
+                  </div>
                   <p className="kiosk-eyebrow">SLOT {product.id}</p>
                   <h2>{product.name}</h2>
                   <p>{product.stock > 0 ? `${product.stock} available` : 'Out of stock'}</p>
@@ -169,13 +192,21 @@ export default function Kiosk() {
                 </article>
               ))}
             </div>
-            {catalog?.busy && <p className="kiosk-warning">Machine is processing another order. Please wait.</p>}
+            {catalog?.busy && (
+              <p className="kiosk-warning">Machine is processing another order. Please wait.</p>
+            )}
             {!catalog && !error && <p role="status">Loading products…</p>}
           </>
         )}
-        {error && <p className="kiosk-error" role="alert">{error}</p>}
+        {error && (
+          <p className="kiosk-error" role="alert">
+            {error}
+          </p>
+        )}
       </main>
-      <footer className="kiosk-footer">SmartVend · Two-slot vending machine · Test transactions only</footer>
+      <footer className="kiosk-footer">
+        SmartVend · Two-slot vending machine · Test transactions only
+      </footer>
     </div>
   );
 }

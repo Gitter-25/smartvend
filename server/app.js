@@ -258,9 +258,9 @@ export function createApp({ store, config, fetchImpl }) {
     res.json({
       busy,
       testMode: true,
-      products: store.all('SELECT id,name,price_cents,stock FROM products ORDER BY id').map(
-        ({ price_cents, ...product }) => ({ ...product, price: price_cents / 100 }),
-      ),
+      products: store
+        .all('SELECT id,name,price_cents,stock FROM products ORDER BY id')
+        .map(({ price_cents, ...product }) => ({ ...product, price: price_cents / 100 })),
     });
   });
   const kioskQr = createQrHandler({
