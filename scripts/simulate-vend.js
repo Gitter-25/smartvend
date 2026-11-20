@@ -13,8 +13,12 @@ if (
   !['success', 'failure'].includes(outcome) ||
   confirmation !== '--confirm-simulated'
 ) {
-  console.error('Usage: node --env-file=.env.server scripts/simulate-vend.js <order-uuid> <success|failure> --confirm-simulated');
-  console.error('Requires SMARTVEND_DEVICE_URL=http://127.0.0.1:3001/api/device-vending and DEVICE_TOKEN.');
+  console.error(
+    'Usage: node --env-file=.env.server scripts/simulate-vend.js <order-uuid> <success|failure> --confirm-simulated',
+  );
+  console.error(
+    'Requires SMARTVEND_DEVICE_URL=http://127.0.0.1:3001/api/device-vending and DEVICE_TOKEN.',
+  );
   console.error('SIMULATION ONLY. Use a disposable test database and sandbox payments.');
   process.exit(1);
 }
@@ -27,7 +31,8 @@ async function call(action, extra = {}) {
     signal: AbortSignal.timeout(12000),
   });
   const body = await response.json();
-  if (!response.ok) throw new Error(`${action} returned ${response.status}: ${body.error || 'unknown error'}`);
+  if (!response.ok)
+    throw new Error(`${action} returned ${response.status}: ${body.error || 'unknown error'}`);
   return body;
 }
 
@@ -44,7 +49,10 @@ try {
     if (started.shouldDispense !== true || started.state !== 'Dispensing') {
       throw new Error('Start did not grant a new single dispense; stop and inspect.');
     }
-    console.log('SIMULATED mechanism:', outcome === 'success' ? 'one item released' : 'confirmed no item released');
+    console.log(
+      'SIMULATED mechanism:',
+      outcome === 'success' ? 'one item released' : 'confirmed no item released',
+    );
     const finished = await call('finish', {
       dispensed: outcome === 'success',
       reason: `Software-only simulator ${randomUUID()}: ${outcome === 'success' ? 'simulated item passage' : 'simulated confirmed non-dispense'}; no physical mechanism or sensor was used`,
@@ -52,11 +60,15 @@ try {
     console.log('Final job:', finished);
     console.log('SIMULATION ONLY: not evidence of physical dispensing.');
     if (finished.state === 'RefundPending') {
-      console.log('QR refund requires separate admin/provider verification. Do not assume automatic refund.');
+      console.log(
+        'QR refund requires separate admin/provider verification. Do not assume automatic refund.',
+      );
     }
   }
 } catch (error) {
   console.error('Simulation stopped:', error.message);
-  console.error('Outcome may be uncertain. Inspect status and transaction; NEVER automatically repeat start or finish.');
+  console.error(
+    'Outcome may be uncertain. Inspect status and transaction; NEVER automatically repeat start or finish.',
+  );
   process.exitCode = 1;
 }
