@@ -58,3 +58,21 @@ npm run build
 Tests include real Express HTTP requests, SQLite persistence/rollback, authentication, encrypted cards, money/stock retries, QR settlement, and signed webhook verification with synthetic provider responses. GitHub Actions checks formatting, runs tests, and builds the production app on Node 24.
 
 Actual PayMongo account configuration, public HTTPS/webhook delivery, ESP32 firmware, mechanical assembly, and sensor testing remain to be completed. The local computer must stay running for vending. RFID can operate on a reachable local backend without external payments; PayMongo testing requires internet access.
+
+## Customer kiosk (sandbox)
+
+Open `http://localhost:5173/kiosk` on the vending machine's touch-screen browser.
+This public page is separate from the admin login. It displays only the two product
+slots, creates a PayMongo **test-only** checkout, displays a scannable QR code,
+and polls the backend for verified payment and physical vending state.
+
+Configure `PAYMONGO_TEST_SECRET_KEY` in `.env.server` before testing.
+The customer page never receives administrator sessions or the ESP32 device token.
+Only the server uses its device credential to invoke the existing verified QR flow.
+Public checkout creation is rate-limited and one unresolved vend job blocks new
+orders. A random order ID is used to resume a pending kiosk purchase after reload.
+
+**Important:** This is a local, classroom sandbox kiosk, not a hardened
+unattended public deployment. Keep the server on a trusted network, use test
+credentials only, and have an attendant resolve pending physical outcomes.
+Do not enable live payments without a separate security and deployment review.

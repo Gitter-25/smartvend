@@ -1,7 +1,7 @@
 import express from 'express';
 import helmet from 'helmet';
 import { rateLimit } from 'express-rate-limit';
-import { randomBytes } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import { resolve } from 'node:path';
 import { check } from './store.js';
 import { sessionUser, tokenHash, verifyPassword } from './auth.js';
@@ -241,6 +241,93 @@ export function createApp({ store, config, fetchImpl }) {
         .send(await response.text());
     };
   }
+
+  // Kiosk endpoints are deliberately separate from the authenticated admin API.
+  // This is a single-machine, sandbox-only interface. Never expose the device token.
+  const kioskLimit = rateLimit({
+    windowMs: 60 * 1000,
+    limit: 12,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    message: { error: 'Too many checkout requests. Please wait.' },
+  });
+  app.get('/api/kiosk/products', (_req, res) => {
+    const busy = !!store.get(
+      "SELECT id FROM vend_jobs WHERE state IN ('AwaitingPayment','Authorized','Dispensing','RefundPending') LIMIT 1",
+    );
+    res.json({
+      busy,
+      testMode: true,
+      products: store.all('SELECT id,name,price_cents,stock FROM products ORDER BY id').map(
+        ({ price_cents, ...product }) => ({ ...product, price: price_cents / 100 }),
+      ),
+    });
+  });
+  const kioskQr = createQrHandler({
+    db: handlerStore(store),
+    deviceToken: config.deviceToken,
+    secret: config.paymongoSecret,
+    webhookSecret: config.webhookSecret,
+    fetchImpl,
+  });
+  async function kioskRequest(action, requestId, slot) {
+    const response = await kioskQr(
+      new Request('http://localhost/api/qr-payments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${config.deviceToken}`,
+        },
+        body: JSON.stringify({ action, requestId, ...(slot ? { slot } : {}) }),
+      }),
+    );
+    return { status: response.status, body: await response.json() };
+  }
+  app.post('/api/kiosk/checkout', kioskLimit, async (req, res) => {
+    if (!config.paymongoSecret?.startsWith('sk_test_')) {
+      return res.status(503).json({ error: 'Sandbox QR payments are not configured.' });
+    }
+    const slot = req.body?.slot;
+    if (!Number.isInteger(slot) || ![1, 2].includes(slot)) {
+      return res.status(400).json({ error: 'Select a valid product.' });
+    }
+    const requestId = randomUUID();
+    const result = await kioskRequest('create', requestId, slot);
+    res.status(result.status).json(
+      result.status === 200
+        ? {
+            requestId,
+            state: result.body.state,
+            product: result.body.product,
+            amount: result.body.amount,
+            checkoutUrl: result.body.checkoutUrl,
+          }
+        : result.body,
+    );
+  });
+  app.get('/api/kiosk/checkout/:id', kioskLimit, async (req, res) => {
+    if (!/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(req.params.id)) {
+      return res.status(404).json({ error: 'Checkout not found.' });
+    }
+    // The random checkout ID is an unguessable order-scoped capability.
+    const exists = store.get('SELECT id FROM qr_orders WHERE id=?', req.params.id);
+    if (!exists) {
+      return res.status(404).json({ error: 'Checkout not found.' });
+    }
+    const result = await kioskRequest('status', req.params.id);
+    res.status(result.status).json(
+      result.status === 200
+        ? {
+            requestId: result.body.requestId,
+            state: result.body.state,
+            product: result.body.product,
+            amount: result.body.amount,
+            checkoutUrl: result.body.checkoutUrl,
+          }
+        : result.body,
+    );
+  });
+
   app.post('/api/card-management', admin, bridge(createCardHandler(shared), true));
   app.post('/api/device-vending', bridge(createDeviceHandler(shared)));
   const qr = createQrHandler({
